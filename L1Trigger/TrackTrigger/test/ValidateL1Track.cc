@@ -140,6 +140,9 @@ class ValidateL1Track : public edm::EDAnalyzer
     TH2D* hTrack_3Stubs_Chi2Red_NStubs;
     TH2D* hTrack_3Stubs_Chi2Red_TPart_Eta;
 
+    TH1D* hTPart_Eta_Normalization;
+    TH1D* hTPart_Eta_NStubs;
+
     unsigned int maxPtBin;
     unsigned int maxEtaBin;
     std::vector< double > vLimitsPt;
@@ -160,6 +163,7 @@ class ValidateL1Track : public edm::EDAnalyzer
     std::map< std::pair< unsigned int, unsigned int >, TH1D* > mapTrack_3Stubs_RelPtRes_PtEta;
     std::map< std::pair< unsigned int, unsigned int >, TH1D* > mapTrack_3Stubs_PhiRes_PtEta;
     std::map< std::pair< unsigned int, unsigned int >, TH1D* > mapTrack_3Stubs_EtaRes_PtEta;
+    std::map< std::pair< unsigned int, unsigned int >, TH1D* > mapTrack_3Stubs_CotThetaRes_PtEta;
     std::map< std::pair< unsigned int, unsigned int >, TH1D* > mapTrack_3Stubs_VtxZ0Res_PtEta;
 
     TH1D* hTrack_2Stubs_N;
@@ -615,6 +619,11 @@ void ValidateL1Track::beginJob()
   hTrack_3Stubs_Chi2Red_NStubs->Sumw2();
   hTrack_3Stubs_Chi2Red_TPart_Eta->Sumw2();
 
+  hTPart_Eta_Normalization = fs->make<TH1D>("hTPart_Eta_Normalization", "TParticles vs. TPart #eta", 90, 0, M_PI );
+  hTPart_Eta_NStubs        = fs->make<TH1D>("hTPart_Eta_NStubs"       , "N Stubs vs. TPart #eta"   , 90, 0, M_PI );
+  hTPart_Eta_Normalization->Sumw2();
+  hTPart_Eta_NStubs->Sumw2();
+
   /// Prepare for 1D resolution plots
 
   for ( unsigned int iPt = 0; iPt < maxPtBin; iPt++ )
@@ -675,6 +684,13 @@ void ValidateL1Track::beginJob()
                                                              "), |#eta| in [" << minEta << ", " << (minEta + etaBinSize) << ")";
       mapTrack_3Stubs_EtaRes_PtEta[ mapKey ] = fs->make<TH1D>( histoName.str().c_str(),  histoTitle.str().c_str(), 200, -0.5, 0.5 );
       mapTrack_3Stubs_EtaRes_PtEta[ mapKey ]->Sumw2();
+
+      histoName.str("");  histoName << "hTrack_3Stubs_CotThetaRes_Pt" << iPt << "_Eta" << iEta;
+      histoTitle.str(""); histoTitle << "Track cot(#theta) - TPart cot(#theta), p_{T} in [" << minPt << ", " << (minPt + ptBinSize) <<
+                                                                           "), |#eta| in [" << minEta << ", " << (minEta + etaBinSize) << ")";
+      mapTrack_3Stubs_CotThetaRes_PtEta[ mapKey ] = fs->make<TH1D>( histoName.str().c_str(),  histoTitle.str().c_str(), 200, -0.5, 0.5 );
+      mapTrack_3Stubs_CotThetaRes_PtEta[ mapKey ]->Sumw2();
+
 
       histoName.str("");  histoName << "hTrack_3Stubs_VtxZ0Res_Pt" << iPt << "_Eta" << iEta;
       histoTitle.str(""); histoTitle << "Track z_{vtx} - TPart z_{vtx}, p_{T} in [" << minPt << ", " << (minPt + ptBinSize) <<
@@ -924,6 +940,7 @@ if ( hasBL1 )
       double trackPt    = tempTrackPtr->getMomentum().perp();
       double trackPhi   = tempTrackPtr->getMomentum().phi();
       double trackEta   = tempTrackPtr->getMomentum().eta();
+      double trackTheta = tempTrackPtr->getMomentum().theta();
       double trackVtxZ0 = tempTrackPtr->getVertex().z();
       double trackChi2  = tempTrackPtr->getChi2();
       double trackChi2R = tempTrackPtr->getChi2Red();
@@ -944,11 +961,16 @@ if ( hasBL1 )
 
       double tpPt = tpPtr->p4().pt();
       double tpEta = tpPtr->momentum().eta();
+      double tpTheta = tpPtr->momentum().theta();
       double tpPhi = tpPtr->momentum().phi();
       double tpVtxZ0 = tpPtr->vertex().z();
 
       if ( nStubs > 2 )
       {
+
+        hTPart_Eta_Normalization->Fill( tpEta );
+        hTPart_Eta_NStubs->Fill( tpEta, nStubs );
+
         hTrack_3Stubs_Pt->Fill( trackPt );
         hTrack_3Stubs_Eta->Fill( trackEta );
         hTrack_3Stubs_Phi->Fill( trackPhi );
@@ -1017,6 +1039,7 @@ if ( hasBL1 )
         mapTrack_3Stubs_RelPtRes_PtEta[ mapKey ]->Fill( trackPt / tpPt - 1 );
         mapTrack_3Stubs_PhiRes_PtEta[ mapKey ]->Fill( trackPhi - tpPhi );
         mapTrack_3Stubs_EtaRes_PtEta[ mapKey ]->Fill( trackEta - tpEta );
+        mapTrack_3Stubs_CotThetaRes_PtEta[ mapKey ]->Fill( 1./tan(trackTheta) - 1./tan(tpTheta) );
         mapTrack_3Stubs_VtxZ0Res_PtEta[ mapKey ]->Fill( trackVtxZ0 - tpVtxZ0 );
 //}
       }
