@@ -19,7 +19,7 @@ TTTrackAlgorithm_trackletLB_PixelDigi_ = cms.ESProducer("TTTrackAlgorithm_trackl
 
 
 TTTrackAlgorithm_trackletBE_PixelDigi_ = cms.ESProducer("TTTrackAlgorithm_trackletBE_PixelDigi_",
-   NumSectors = cms.int32(6),#24),
+   NumSectors = cms.int32(24),
    NumWedges = cms.int32(3),#6),
 
    ProjectionWindowsBarrelBarrel = cms.VPSet(

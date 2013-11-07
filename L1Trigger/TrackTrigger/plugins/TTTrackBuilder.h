@@ -24,7 +24,6 @@
 
 #include "L1Trigger/TrackTrigger/interface/TTTrackAlgorithm.h"
 #include "L1Trigger/TrackTrigger/interface/TTTrackAlgorithmRecord.h"
-//#include "classNameFinder.h"
 
 #include <memory>
 #include <map>
@@ -148,37 +147,8 @@ void TTTrackBuilder< T >::produce( edm::Event& iEvent, const edm::EventSetup& iS
       TTTrack< T > curSeed = theseSeeds.at(it);
       TTTracksSeedsForOutput->push_back( curSeed );
 
-      /// Find the sector and the stubs to be attached
-      unsigned int curSector0 = curSeed.getSector() + nSectors; /// This is to use the %nSectors later
-      unsigned int curWedge0 = curSeed.getWedge();
-
-      /// Loop over the sector and its two neighbors
-      for ( unsigned int iSector = 0; iSector < 2; iSector++ )
-      {
-        for ( unsigned int iWedge = 0; iWedge < 2; iWedge++)
-        {
-          /// Find the correct sector index
-          unsigned int curSector = ( curSector0 + iSector -1 )%nSectors;
-          int curWedge = curWedge0 + iWedge - 1;
-          if ( curWedge < 0 || curWedge >= (int)nWedges )
-            continue;
-
-          std::pair< unsigned int, unsigned int > sectorWedge = std::make_pair( curSector, (unsigned int)curWedge );
-
-          /// Skip sector if empty
-          if ( stubSectorWedgeMap->find( sectorWedge ) == stubSectorWedgeMap->end() )
-            continue;
-
-          std::vector< edm::Ptr< TTStub< T > > > stubsToAttach = stubSectorWedgeMap->find( sectorWedge )->second;
-
-          /// Loop over the stubs in the Sector
-          for ( unsigned int iv = 0; iv < stubsToAttach.size(); iv++ )
-          {
-            /// Here we have same-sector-different-SL seed and stubs
-            theTrackFindingAlgoHandle->AttachStubToSeed( curSeed, stubsToAttach.at(iv) );
-          } /// End of nested loop over stubs in the Sector
-        }
-      } /// End of loop over the sector and its two neighbors
+      /// Propagate the seed
+      theTrackFindingAlgoHandle->FindMatches( curSeed, stubSectorWedgeMap, nSectors, nWedges );
 
       /// Here the seed is completed with all its matched stubs
       /// The seed is now a track and it is time to fit it
@@ -195,13 +165,12 @@ void TTTrackBuilder< T >::produce( edm::Event& iEvent, const edm::EventSetup& iS
           curSeed.setLargestResIdx( -1 );
           theTrackFindingAlgoHandle->FitTrack( curSeed );
         }
-      }
+      } /// End of refit
 
       /// Store the fitted track in the output
       TTTracksForOutput->push_back( curSeed );
 
     } /// End of loop over seeds
-
   } /// End of non-AM
 
   /// Remove duplicates
@@ -288,19 +257,6 @@ void TTTrackBuilder< T >::produce( edm::Event& iEvent, const edm::EventSetup& iS
         }
         /// We get here only if both have BL1 or both have not
 
-        /// Choose the one with the largest number of PS stubs
-        if ( nPSi > nPSj )
-        {
-          toBeDeleted[j] = true;
-          continue;
-        }
-        else if ( nPSi < nPSj )
-        {
-          toBeDeleted[i] = true;
-          continue;
-        }
-        /// Here we are if the two tracks have the same number of PS stubs
-
         /// Compare Chi2
         if ( TTTracksForOutput->at(i).getChi2Red() > TTTracksForOutput->at(j).getChi2Red() )
         {
@@ -314,7 +270,8 @@ void TTTrackBuilder< T >::produce( edm::Event& iEvent, const edm::EventSetup& iS
       }
     }
 
-    if ( toBeDeleted.at(i) ) continue; /// Is it really necessary?
+    if ( toBeDeleted.at(i) )
+      continue; /// Is it really necessary?
   }
 
   /// Store only the non-deleted tracks

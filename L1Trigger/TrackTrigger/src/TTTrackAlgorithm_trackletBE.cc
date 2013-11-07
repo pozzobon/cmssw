@@ -196,7 +196,6 @@ void TTTrackAlgorithm_trackletBE< Ref_PixelDigi_ >::CreateSeeds( std::vector< TT
 
             /// Skip same layer pairs
             /// Skip pairs with distance larger than 1 layer
-            //if (( detId2.iLayer() != detId1.iLayer() + 1 ) && ( detId1.iLayer() != detId2.iLayer() + 1 ))
             if ( detId2.iLayer() != detId1.iLayer() + 1 )
               continue;
 
@@ -257,18 +256,22 @@ void TTTrackAlgorithm_trackletBE< Ref_PixelDigi_ >::CreateSeeds( std::vector< TT
             double phi2 = pos2.phi();
             double z2 = pos2.z();
 
-            bool endcapSeedPS = TTTrackAlgorithm< Ref_PixelDigi_ >::theStackedTracker->isPSModule( detId2 );
-
-            /// Skip non-PS in endcaps for the mixed seeding
-            if ( !endcapSeedPS )
-            {}//  continue;
-
             /// Layer-Disk-Ring constraint
-            if ( detId2.iDisk() > 1 )
+            if ( detId2.iDisk() > 1 || detId2.iRing() > 11 )
               continue;
 
-            if ( detId2.iRing() > 11 )
+            if ( detId1.iLayer() == 1 && detId2.iRing() < 1 )
+            {
               continue;
+            }
+            else if ( detId1.iLayer() == 2 && detId2.iRing() < 4 )
+            {
+              continue;
+            }
+            else if ( detId1.iLayer() == 3 && detId2.iRing() < 8 )
+            {
+              continue;
+            }
 
             /// Safety cross-check
             if ( rho1 > rho2 )
@@ -290,12 +293,14 @@ void TTTrackAlgorithm_trackletBE< Ref_PixelDigi_ >::CreateSeeds( std::vector< TT
 #include "L1Trigger/TrackTrigger/src/TTTrackAlgorithm_trackletBE_SeedParameters.icc"
 
             /// Correct for Endcap 2S in the seed
+            bool endcapSeedPS = TTTrackAlgorithm< Ref_PixelDigi_ >::theStackedTracker->isPSModule( detId2 );
+
             if ( !endcapSeedPS )
             {
               if ( fabs( z1 - z2 ) < 10 )
               {
                 z0 = 0;
-                cotTheta0 = z1 / rhoPsi1;
+                cotTheta0 = z1 / rhoPsi1; /// Use barrel coordinates!
               }
             }
 
@@ -388,24 +393,31 @@ void TTTrackAlgorithm_trackletBE< Ref_PixelDigi_ >::CreateSeeds( std::vector< TT
             double phi2 = pos2.phi();
             double z2 = pos2.z();
 
-            bool endcapSeedPS2 = TTTrackAlgorithm< Ref_PixelDigi_ >::theStackedTracker->isPSModule( detId2 );
-            if ( !endcapSeedPS2 )
-              continue;
-
             /// Skip same disk pairs
             if ( detId2.iSide() != detId1.iSide() )
               continue;
 
             /// Skip pairs with distance larger than 1 disk
-            //if (( detId2.iDisk() != detId1.iDisk() + 1 ) && ( detId1.iDisk() != detId2.iDisk() + 1 ))
             if ( detId2.iDisk() != detId1.iDisk() + 1 )
               continue;
 
+            bool endcapSeedPS2 = TTTrackAlgorithm< Ref_PixelDigi_ >::theStackedTracker->isPSModule( detId2 );
+            if ( !endcapSeedPS2 )
+              continue;
+
             /// Safety cross check
-            if ( fabs(pos1.z()) > fabs(pos2.z()) )
+            if ( fabs(z1) > fabs(z2) )
             {
               //std::cerr << "TTTrackAlgorithm_exactBarrelEndcap::CreateSeeds()" << std::endl;
               //std::cerr << "   A L E R T ! fabs(pos1.z()) > fabs(pos2.z()) in Endcap-Endcap tracklet" << std::endl;
+              continue;
+            }
+
+            /// Additional safety cross-check
+            if ( rho1 > rho2 )
+            {
+              //std::cerr << "TTTrackAlgorithm_trackletBE::CreateSeeds()" << std::endl;
+              //std::cerr << "   A L E R T ! pos1.perp() > pos2.perp() in Barrel-Endcap tracklet" << std::endl;
               continue;
             }
 
@@ -503,30 +515,36 @@ void TTTrackAlgorithm_trackletBE< Ref_PixelDigi_ >::AttachStubToSeed( TTTrack< R
   StackedTrackerDetId stDetId1( theStubs.at(1)->getDetId() );
   StackedTrackerDetId stDetIdCand( candidate->getDetId() );
 
-  bool endcapCandPS = false;
-  bool endcapSeedPS = false;
-  if ( endcapCandPS || endcapSeedPS )
-  {} /// This is needed when I comment lines down there in order to perform tests and not to get compilation warnings etc...
-
   if ( stDetId0.isBarrel() && stDetIdCand.isBarrel() )
   {
     if ( stDetId0.iLayer() == stDetIdCand.iLayer() || stDetId1.iLayer() == stDetIdCand.iLayer() )
       return;
   }
-  else
+  else if ( stDetIdCand.isEndcap() )
   {
-    if ( stDetId0.isEndcap() && stDetIdCand.isEndcap() )
+    /// Not BARREL to BARREL by construction
+    if ( stDetId0.isEndcap() )
     {
+      /// ENDCAP-ENDCAP seed
       if ( stDetId0.iSide() == stDetIdCand.iSide() )
       {
-        if ( stDetId0.iDisk() == stDetIdCand.iDisk() || stDetId1.iDisk() == stDetIdCand.iDisk() )
+        if ( stDetId0.iDisk() == stDetIdCand.iDisk() )
+          return;
+      }
+    }
+    if ( stDetId1.isEndcap() )
+    {
+      /// MIXED or ENDCAP-ENDCAP seed
+      if ( stDetId1.iSide() == stDetIdCand.iSide() )
+      {
+        if ( stDetId1.iDisk() == stDetIdCand.iDisk() )
           return;
       }
     }
   }
 
-  endcapCandPS = stDetIdCand.isEndcap() && TTTrackAlgorithm< Ref_PixelDigi_ >::theStackedTracker->isPSModule( stDetIdCand );
-  endcapSeedPS = stDetId0.isEndcap() && TTTrackAlgorithm< Ref_PixelDigi_ >::theStackedTracker->isPSModule( stDetId0 );
+  bool endcapCandPS = stDetIdCand.isEndcap() && TTTrackAlgorithm< Ref_PixelDigi_ >::theStackedTracker->isPSModule( stDetIdCand );
+  bool endcapSeedPS = stDetId0.isEndcap() && TTTrackAlgorithm< Ref_PixelDigi_ >::theStackedTracker->isPSModule( stDetId0 );
 
   /// Here we have either Barrel-Barrel with different Layer,
   /// either Endcap-Endcap with different Side/Disk,

@@ -109,6 +109,12 @@ class TTTrackAlgorithm_trackletBE : public TTTrackAlgorithm< T >
                       std::map< std::pair< unsigned int, unsigned int >, std::vector< edm::Ptr< TTStub< T > > > > *outputSectorMap,
                       edm::Handle< std::vector< TTStub< T > > > &input ) const;
 
+    /// Seed propagation
+    void FindMatches( TTTrack< T > &inputSeed,
+                      std::map< std::pair< unsigned int, unsigned int >, std::vector< edm::Ptr< TTStub< T > > > > *inputSectorMap,
+                      unsigned int nSectors,
+                      unsigned int nWedges ) const;
+
     /// Match a Stub to a Seed/Track
     void AttachStubToSeed( TTTrack< T > &seed,
                            edm::Ptr< TTStub< T > > &candidate ) const;
@@ -142,6 +148,47 @@ void TTTrackAlgorithm_trackletBE< Ref_PixelDigi_ >::CreateSeeds( std::vector< TT
 template< >
 void TTTrackAlgorithm_trackletBE< Ref_PixelDigi_ >::AttachStubToSeed( TTTrack< Ref_PixelDigi_ > &seed,
                                                                       edm::Ptr< TTStub< Ref_PixelDigi_ > > &candidate ) const;
+
+/// Propagate Seed
+template < typename T >
+void TTTrackAlgorithm_trackletBE< T >::FindMatches( TTTrack< T > &inputSeed,
+                                                    std::map< std::pair< unsigned int, unsigned int >, std::vector< edm::Ptr< TTStub< T > > > > *inputSectorMap,
+                                                    unsigned int nSectors,
+                                                    unsigned int nWedges ) const
+{
+  /// Find the sector and the stubs to be attached
+  unsigned int curSector0 = inputSeed.getSector() + nSectors; /// This is to use the %nSectors later
+  unsigned int curWedge0 = inputSeed.getWedge();
+                                   
+  /// Loop over the sector and its two neighbors
+  for ( unsigned int iSector = 0; iSector < 2; iSector++ )
+  {
+    for ( unsigned int iWedge = 0; iWedge < 2; iWedge++)
+    {
+      /// Find the correct sector index
+      unsigned int curSector = ( curSector0 + iSector -1 )%nSectors;
+      int curWedge = curWedge0 + iWedge - 1;
+      if ( curWedge < 0 || curWedge >= (int)nWedges )
+        continue;
+
+      std::pair< unsigned int, unsigned int > sectorWedge = std::make_pair( curSector, (unsigned int)curWedge );
+
+      /// Skip sector if empty
+      if ( inputSectorMap->find( sectorWedge ) == inputSectorMap->end() )
+        continue;
+
+      std::vector< edm::Ptr< TTStub< T > > > stubsToAttach = inputSectorMap->find( sectorWedge )->second;
+
+      /// Loop over the stubs in the Sector
+      for ( unsigned int iv = 0; iv < stubsToAttach.size(); iv++ )
+      {
+        /// Here we have same-sector-different-SL seed and stubs
+        this->AttachStubToSeed( inputSeed, stubsToAttach.at(iv) );
+      } /// End of nested loop over stubs in the Sector
+    }
+  } /// End of loop over the sector and its two neighbors
+}
+
 
 
 

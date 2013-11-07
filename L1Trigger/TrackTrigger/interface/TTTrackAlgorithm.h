@@ -57,6 +57,15 @@ class TTTrackAlgorithm
       output.clear();
     }
 
+    /// Seed propagation
+    virtual void FindMatches( TTTrack< T > &inputSeed,
+                              std::map< std::pair< unsigned int, unsigned int >, std::vector< edm::Ptr< TTStub< T > > > > *inputSectorMap,
+                              unsigned int nSectors,
+                              unsigned int nWedges ) const
+    {
+      /// Do nothing
+    }
+
     /// Match a Stub to a Seed/Track
     virtual void AttachStubToSeed( TTTrack< T > &seed,
                                    edm::Ptr< TTStub< T > > &candidate ) const

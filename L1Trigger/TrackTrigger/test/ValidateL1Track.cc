@@ -166,6 +166,9 @@ class ValidateL1Track : public edm::EDAnalyzer
     std::map< std::pair< unsigned int, unsigned int >, TH1D* > mapTrack_3Stubs_CotThetaRes_PtEta;
     std::map< std::pair< unsigned int, unsigned int >, TH1D* > mapTrack_3Stubs_VtxZ0Res_PtEta;
 
+    std::map< std::pair< unsigned int, unsigned int >, TH1D* > mapTrack_3Stubs_XYHitNormRes_PtEta;
+    std::map< std::pair< unsigned int, unsigned int >, TH1D* > mapTrack_3Stubs_ZRHitNormRes_PtEta;
+
     TH1D* hTrack_2Stubs_N;
     TH2D* hTrack_2Stubs_Pt_TPart_Pt;
     TH2D* hTrack_2Stubs_PtRes_TPart_Eta;
@@ -655,6 +658,7 @@ void ValidateL1Track::beginJob()
 
       minEta = etaBinSize * iEta;
 
+
       histoName.str("");  histoName << "hTrack_3Stubs_PtRes_Pt" << iPt << "_Eta" << iEta;
       histoTitle.str(""); histoTitle << "Track p_{T} - TPart p_{T}, p_{T} in [" << minPt << ", " << (minPt + ptBinSize) <<
                                                                "), |#eta| in [" << minEta << ", " << (minEta + etaBinSize) << ")";
@@ -664,7 +668,7 @@ void ValidateL1Track::beginJob()
       histoName.str("");  histoName << "hTrack_3Stubs_InvPtRes_Pt" << iPt << "_Eta" << iEta;
       histoTitle.str(""); histoTitle << "Track p_{T}^{-1} - TPart p_{T}^{-1}, p_{T} in [" << minPt << ", " << (minPt + ptBinSize) <<
                                                                          "), |#eta| in [" << minEta << ", " << (minEta + etaBinSize) << ")";
-      mapTrack_3Stubs_InvPtRes_PtEta[ mapKey ] = fs->make<TH1D>( histoName.str().c_str(),  histoTitle.str().c_str(), 200, -1, 1 );
+      mapTrack_3Stubs_InvPtRes_PtEta[ mapKey ] = fs->make<TH1D>( histoName.str().c_str(),  histoTitle.str().c_str(), 50, -0.01, 0.01 ); 
       mapTrack_3Stubs_InvPtRes_PtEta[ mapKey ]->Sumw2();
 
       histoName.str("");  histoName << "hTrack_3Stubs_RelPtRes_Pt" << iPt << "_Eta" << iEta;
@@ -676,27 +680,40 @@ void ValidateL1Track::beginJob()
       histoName.str("");  histoName << "hTrack_3Stubs_PhiRes_Pt" << iPt << "_Eta" << iEta;
       histoTitle.str(""); histoTitle << "Track #phi - TPart #phi, p_{T} in [" << minPt << ", " << (minPt + ptBinSize) <<
                                                              "), |#eta| in [" << minEta << ", " << (minEta + etaBinSize) << ")";
-      mapTrack_3Stubs_PhiRes_PtEta[ mapKey ] = fs->make<TH1D>( histoName.str().c_str(),  histoTitle.str().c_str(), 200, -0.5, 0.5 );
+      mapTrack_3Stubs_PhiRes_PtEta[ mapKey ] = fs->make<TH1D>( histoName.str().c_str(),  histoTitle.str().c_str(), 100, -0.01, 0.01 );
       mapTrack_3Stubs_PhiRes_PtEta[ mapKey ]->Sumw2();
 
       histoName.str("");  histoName << "hTrack_3Stubs_EtaRes_Pt" << iPt << "_Eta" << iEta;
       histoTitle.str(""); histoTitle << "Track #eta - TPart #eta, p_{T} in [" << minPt << ", " << (minPt + ptBinSize) <<
                                                              "), |#eta| in [" << minEta << ", " << (minEta + etaBinSize) << ")";
-      mapTrack_3Stubs_EtaRes_PtEta[ mapKey ] = fs->make<TH1D>( histoName.str().c_str(),  histoTitle.str().c_str(), 200, -0.5, 0.5 );
+      mapTrack_3Stubs_EtaRes_PtEta[ mapKey ] = fs->make<TH1D>( histoName.str().c_str(),  histoTitle.str().c_str(), 100, -0.01, 0.01 ); 
       mapTrack_3Stubs_EtaRes_PtEta[ mapKey ]->Sumw2();
 
       histoName.str("");  histoName << "hTrack_3Stubs_CotThetaRes_Pt" << iPt << "_Eta" << iEta;
       histoTitle.str(""); histoTitle << "Track cot(#theta) - TPart cot(#theta), p_{T} in [" << minPt << ", " << (minPt + ptBinSize) <<
                                                                            "), |#eta| in [" << minEta << ", " << (minEta + etaBinSize) << ")";
-      mapTrack_3Stubs_CotThetaRes_PtEta[ mapKey ] = fs->make<TH1D>( histoName.str().c_str(),  histoTitle.str().c_str(), 200, -0.5, 0.5 );
+      mapTrack_3Stubs_CotThetaRes_PtEta[ mapKey ] = fs->make<TH1D>( histoName.str().c_str(),  histoTitle.str().c_str(), 100, -0.01, 0.01 );
       mapTrack_3Stubs_CotThetaRes_PtEta[ mapKey ]->Sumw2();
 
 
       histoName.str("");  histoName << "hTrack_3Stubs_VtxZ0Res_Pt" << iPt << "_Eta" << iEta;
       histoTitle.str(""); histoTitle << "Track z_{vtx} - TPart z_{vtx}, p_{T} in [" << minPt << ", " << (minPt + ptBinSize) <<
                                                                    "), |#eta| in [" << minEta << ", " << (minEta + etaBinSize) << ")";
-      mapTrack_3Stubs_VtxZ0Res_PtEta[ mapKey ] = fs->make<TH1D>( histoName.str().c_str(),  histoTitle.str().c_str(), 200, -0.5, 0.5 );
+      mapTrack_3Stubs_VtxZ0Res_PtEta[ mapKey ] = fs->make<TH1D>( histoName.str().c_str(),  histoTitle.str().c_str(), 200, -0.5, 0.5 ); 
       mapTrack_3Stubs_VtxZ0Res_PtEta[ mapKey ]->Sumw2();
+
+      histoName.str("");  histoName << "hTrack_3Stubs_XYHitNormRes_Pt" << iPt << "_Eta" << iEta;
+      histoTitle.str(""); histoTitle << "Normalized XY Hit Residuals, p_{T} in [" << minPt << ", " << (minPt + ptBinSize) <<
+                                                                 "), |#eta| in [" << minEta << ", " << (minEta + etaBinSize) << ")";
+      mapTrack_3Stubs_XYHitNormRes_PtEta[ mapKey ] = fs->make<TH1D>( histoName.str().c_str(),  histoTitle.str().c_str(), 400, -20, 20 );
+      mapTrack_3Stubs_XYHitNormRes_PtEta[ mapKey ]->Sumw2();
+
+      histoName.str("");  histoName << "hTrack_3Stubs_ZRHitNormRes_Pt" << iPt << "_Eta" << iEta;
+      histoTitle.str(""); histoTitle << "Normalized ZR Hit Residuals, p_{T} in [" << minPt << ", " << (minPt + ptBinSize) <<
+                                                                 "), |#eta| in [" << minEta << ", " << (minEta + etaBinSize) << ")";
+      mapTrack_3Stubs_ZRHitNormRes_PtEta[ mapKey ] = fs->make<TH1D>( histoName.str().c_str(),  histoTitle.str().c_str(), 200, -10, 10);
+      mapTrack_3Stubs_ZRHitNormRes_PtEta[ mapKey ]->Sumw2();
+
     }
   }
 
@@ -1066,6 +1083,36 @@ if ( hasBL1 )
         hTrack_2Stubs_Chi2Red_TPart_Eta->Fill( tpEta, trackChi2R );      
       }
 
+
+
+
+
+
+
+
+      /// Propagation and single hit resolution
+
+      if ( nStubs <= 2 )
+        continue;
+
+      /// Now, the different Pt/Eta mapping
+      unsigned int binPt = 0;
+      unsigned int binEta = 0;
+      for ( unsigned int iPt = 0; iPt < maxPtBinRes; iPt++ )
+      {
+        if ( tpPt >= iPt*ptBinSize )
+          binPt = iPt;
+      }
+      for ( unsigned int iEta = 0; iEta < maxEtaBinRes; iEta++ )
+      {
+        if ( fabs(tpEta) >= iEta*etaBinSize )
+          binEta = iEta;
+      }
+
+      std::pair< unsigned int, unsigned int > mapKey = std::make_pair( binPt, binEta );
+
+
+
       /// Go on only if there are TTTracks from PixelDigis
       if ( PixelDigiTTSeedHandle->size() > 0 )
       {
@@ -1139,9 +1186,17 @@ if ( hasBL1 )
             {
               /// Propagation
               double propPsi = asin( posStub.perp() * 0.5 * seedRInv );
-              double propPhi = seedPhi - propPsi;
+              double propPhi = seedPhi + propPsi;
               double propRhoPsi = 2 * propPsi / seedRInv;
               double propZ = seedVtxZ0 + propRhoPsi * tan( M_PI_2 - iterSeed->getMomentum().theta() );
+
+              /// Hit Resolution
+              const GeomDetUnit* detCand = theStackedGeometry->idToDetUnit( detIdCand, 0 );
+              const PixelGeomDetUnit* pixCand = dynamic_cast< const PixelGeomDetUnit* >( detCand );
+              const PixelTopology* topCand = dynamic_cast< const PixelTopology* >( &(pixCand->specificTopology()) );
+              std::pair< float, float > pitchCand = topCand->pitch();
+              double sigmaRhoPhi = pitchCand.first / sqrt(12 * iterTTTrack->getStubPtrs().at(js)->getClusterPtr(0)->findWidth() ); /// Take into account cluster width!
+              double sigmaZ = pitchCand.second / sqrt(12);
 
               /// Calculate displacement
               /// Perform standard trigonometric operations
@@ -1155,6 +1210,13 @@ if ( hasBL1 )
               }
               double deltaRPhi = deltaPhi * posStub.perp();
               double deltaZ = propZ - posStub.z();
+
+              /// Normalized residuals
+              double normResRPhi = deltaRPhi / sigmaRhoPhi;
+              double normResZ = deltaZ / sigmaZ;
+
+              mapTrack_3Stubs_XYHitNormRes_PtEta[ mapKey ]->Fill( normResRPhi );
+              mapTrack_3Stubs_ZRHitNormRes_PtEta[ mapKey ]->Fill( normResZ );
 
               if ( seedBarrel0 )
               {
@@ -1177,9 +1239,17 @@ if ( hasBL1 )
             {
               /// Propagation
               double propPsi = 0.5*( posStub.z() - seedVtxZ0 ) * seedRInv / tan( M_PI_2 - iterSeed->getMomentum().theta() );
-              double propPhi = seedPhi - propPsi;
+              double propPhi = seedPhi + propPsi;
               double propRho = 2 * sin( propPsi ) / seedRInv;
               double deltaPhi = posStub.phi() - propPhi;
+
+              /// Hit Resolution
+              const GeomDetUnit* detCand = theStackedGeometry->idToDetUnit( detIdCand, 0 );
+              const PixelGeomDetUnit* pixCand = dynamic_cast< const PixelGeomDetUnit* >( detCand );
+              const PixelTopology* topCand = dynamic_cast< const PixelTopology* >( &(pixCand->specificTopology()) );
+              std::pair< float, float > pitchCand = topCand->pitch();
+              double sigmaRhoPhi = pitchCand.first / sqrt(12 * iterTTTrack->getStubPtrs().at(js)->getClusterPtr(0)->findWidth() ); /// Take into account cluster width!
+              double sigmaR = pitchCand.second / sqrt(12);
 
               /// Calculate displacement
               if ( fabs(deltaPhi) >= M_PI )
@@ -1193,8 +1263,6 @@ if ( hasBL1 )
               double deltaR = posStub.perp() - propRho;
 
               /// NEW VERSION - non-pointing strips correction
-              double rhoTrack = 2.0 * sin( 0.5 * seedRInv * ( posStub.z() - seedVtxZ0 ) / tan( M_PI_2 - iterSeed->getMomentum().theta() ) ) / seedRInv;
-              double phiTrack = iterSeed->getMomentum().phi() - 0.5 * seedRInv * ( posStub.z() - seedVtxZ0 ) / tan( M_PI_2 - iterSeed->getMomentum().theta() );
 
               /// Calculate a correction for non-pointing-strips in square modules
               /// Relevant angle is the one between hit and module center, with
@@ -1207,18 +1275,21 @@ if ( hasBL1 )
               /// IN    | | | |x|x| | | | | | | | | | |
               ///             THIS is 3.5 (COORD) and 4.0 (POS)
               /// The center of the module is at NROWS/2 (position) and NROWS-0.5 (coordinates)
-              const GeomDetUnit* det0 = theStackedGeometry->idToDetUnit( detIdCand, 0 );
-              const PixelGeomDetUnit* pix0 = dynamic_cast< const PixelGeomDetUnit* >( det0 );
-              const PixelTopology* top0 = dynamic_cast< const PixelTopology* >( &(pix0->specificTopology()) );
-              std::pair< float, float > pitch0 = top0->pitch();
               MeasurementPoint stubCoord = iterTTTrack->getStubPtrs().at(js)->getClusterPtr(0)->findAverageLocalCoordinates();
-              double stubTransvDispl = pitch0.first * ( stubCoord.x() - (top0->nrows()/2 - 0.5) ); /// Difference in coordinates is the same as difference in position
+              double stubTransvDispl = pitchCand.first * ( stubCoord.x() - (topCand->nrows()/2 - 0.5) ); /// Difference in coordinates is the same as difference in position
               if ( posStub.z() > 0 )
               {
                 stubTransvDispl = - stubTransvDispl;
               }
               double stubPhiCorr = asin( stubTransvDispl / posStub.perp() );
-              deltaRPhi = stubTransvDispl - rhoTrack * sin( stubPhiCorr - phiTrack + posStub.phi() );
+              deltaRPhi = stubTransvDispl - propRho * sin( stubPhiCorr - propPhi + posStub.phi() );
+
+              /// Normalized residuals
+              double normResRPhi = deltaRPhi / sigmaRhoPhi;
+              double normResR = deltaR / sigmaR;
+
+              mapTrack_3Stubs_XYHitNormRes_PtEta[ mapKey ]->Fill( normResRPhi );
+              mapTrack_3Stubs_ZRHitNormRes_PtEta[ mapKey ]->Fill( normResR );
 
               if ( seedBarrel0 )
               {
