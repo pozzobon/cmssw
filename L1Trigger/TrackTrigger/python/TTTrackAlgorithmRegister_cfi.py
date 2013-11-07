@@ -108,6 +108,14 @@ TTTrackAlgorithm_trackletBE_PixelDigi_ = cms.ESProducer("TTTrackAlgorithm_trackl
    )
 )
 
+TTTrackAlgorithm_AMBE_PixelDigi_ = cms.ESProducer("TTTrackAlgorithm_AMBE_PixelDigi_",
+   NumSectors = cms.int32(6),#24),
+   NumWedges = cms.int32(3),#6)
+   inputBankFile = cms.string('/afs/cern.ch/work/s/sviret/testarea/PatternBanks/BE_5D/Eta7_Phi8/ss32_cov40/612_SLHC6_MUBANK_lowmidhig_sec37_ss32_cov40.pbk'),
+   threshold     = cms.int32(5)                                     
+)
+
+
 
 # Set the preferred hit matching algorithms.
 # We prefer the a algorithm for now in order not to break anything.

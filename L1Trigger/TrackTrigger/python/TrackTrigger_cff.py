@@ -13,7 +13,7 @@ from L1Trigger.TrackTrigger.TTTrack_cfi import *
 
 TTClusterAlgorithm_PixelDigi_ = cms.ESPrefer('TTClusterAlgorithm_2d2013_PixelDigi_')
 TTStubAlgorithm_PixelDigi_ = cms.ESPrefer('TTStubAlgorithm_tab2013_PixelDigi_')
-TTTrackAlgorithm_PixelDigi_ = cms.ESPrefer('TTTrackAlgorithm_trackletBE_PixelDigi_')
+TTTrackAlgorithm_PixelDigi_ = cms.ESPrefer('TTTrackAlgorithm_AMBE_PixelDigi_')
 
 #and the sequence to run
 TrackTriggerClustersStubs = cms.Sequence(TTClustersFromPixelDigis*TTStubsFromPixelDigis)

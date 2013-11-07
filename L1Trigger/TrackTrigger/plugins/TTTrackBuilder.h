@@ -120,9 +120,20 @@ void TTTrackBuilder< T >::produce( edm::Event& iEvent, const edm::EventSetup& iS
   if ( enterAssociativeMemoriesWorkflow )
   {
     /// Enter AM 
-    std::cerr << "TEST: AM workflow" << std::endl;
-    theTrackFindingAlgoHandle->PatternFinding();
-    theTrackFindingAlgoHandle->PatternRecognition();
+    //    std::cerr << "TEST: AM workflow" << std::endl;
+    std::vector< TTTrack< T > > theseSeeds;
+    theTrackFindingAlgoHandle->PatternFinding(theseSeeds, TTStubHandle );
+
+
+    /// Here all the seeds are available and all the stubs are stored
+    /// in a sector-wise map: loop over seeds, find the sector, attach stubs
+    /// Store the seeds menawhile ...
+    for ( unsigned int it = 0; it < theseSeeds.size(); it++ )
+    {
+      /// Get the seed and immediately store the seed as it is being modified later!
+      TTTrack< T > curSeed = theseSeeds.at(it);
+      TTTracksSeedsForOutput->push_back( curSeed );
+    }
 
   } /// End AM workflow
   else

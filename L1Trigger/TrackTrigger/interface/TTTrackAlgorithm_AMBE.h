@@ -19,6 +19,7 @@
 #include "FWCore/Framework/interface/ModuleFactory.h"
 #include "FWCore/Framework/interface/ESProducer.h"
 
+#include "L1Trigger/TrackTrigger/interface/TTStubAlgorithm.h"
 #include "L1Trigger/TrackTrigger/interface/TTTrackAlgorithm.h"
 #include "L1Trigger/TrackTrigger/interface/TTTrackAlgorithmRecord.h"
 
@@ -27,10 +28,24 @@
 #include "Geometry/TrackerGeometryBuilder/interface/PixelGeomDetUnit.h"
 #include "Geometry/CommonTopologies/interface/PixelTopology.h"
 
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 #include <boost/shared_ptr.hpp>
 #include <memory>
 #include <string>
 #include <map>
+#include <vector>
+#include <iostream>
+#include <fstream>
+
+#include "L1Trigger/TrackTrigger/interface/CMSPatternLayer.h"
+#include "L1Trigger/TrackTrigger/interface/PatternFinder.h"
+#include "L1Trigger/TrackTrigger/interface/SectorTree.h"
+#include "L1Trigger/TrackTrigger/interface/Hit.h"
+
+#ifndef __APPLE__
+BOOST_CLASS_EXPORT_IMPLEMENT(CMSPatternLayer) 
+#endif
 
 template< typename T >
 class TTTrackAlgorithm_AMBE : public TTTrackAlgorithm< T >
@@ -40,28 +55,49 @@ class TTTrackAlgorithm_AMBE : public TTTrackAlgorithm< T >
     double       mMagneticField;
     unsigned int nSectors;
     unsigned int nWedges;
+    std::string  nBKName;
+    int          nThresh;
+    SectorTree   m_st;
+    PatternFinder           *m_pf;
+
+    //    std::vector<Hit*> m_hits;
 
   public:
     /// Constructors
     TTTrackAlgorithm_AMBE( const StackedTrackerGeometry *aStackedGeom,
                            double aMagneticField,
                            unsigned int aSectors,
-                           unsigned int aWedges )
+                           unsigned int aWedges,
+			   std::string   aBKName,
+			   int aThresh)
       : TTTrackAlgorithm< T > ( aStackedGeom, __func__ )
     {
       mMagneticField = aMagneticField;
       nSectors = aSectors;
-      nWedges = aWedges;
+      nWedges  = aWedges;
+      nBKName  = aBKName;
+      nThresh  = aThresh;
+      
+      cout << "Loading pattern bank file : " << endl;
+      cout << nBKName << endl;
+      
+      std::ifstream ifs(nBKName.c_str());
+      boost::archive::text_iarchive ia(ifs);
+            
+      ia >> m_st;
+      m_pf = new PatternFinder(m_st.getSuperStripSize(), nThresh, &m_st, "", "");
+     
     }
 
     /// Destructor
     ~TTTrackAlgorithm_AMBE(){}
 
-    /// Pattern Finding
-    void PatternFinding() const;
+    /// Bank Loading 
+    void LoadBank() const;
 
-    /// Pattern Recognition
-    void PatternRecognition() const;
+    /// Pattern Finding
+    void PatternFinding(std::vector< TTTrack< T > > &output,                      
+			edm::Handle< std::vector< TTStub< T > > > &input) const;
 
     /// Return the number of Sectors
     unsigned int ReturnNumberOfSectors() const { return nSectors; } /// Phi
@@ -82,17 +118,10 @@ class TTTrackAlgorithm_AMBE : public TTTrackAlgorithm< T >
  *           in the source file.
  */
 
-template< typename T >
-void TTTrackAlgorithm_AMBE< T >::PatternFinding() const
-{
-  std::cerr << "Pattern Finding" << std::endl;
-}
-
-template< typename T >
-void TTTrackAlgorithm_AMBE< T >::PatternRecognition() const
-{
-  std::cerr << "Pattern Recognition" << std::endl;
-}
+/// Create Seeds
+template< >
+void TTTrackAlgorithm_AMBE< Ref_PixelDigi_ >::PatternFinding( std::vector< TTTrack< Ref_PixelDigi_ > > &output,
+							      edm::Handle< std::vector< TTStub< Ref_PixelDigi_ > > > &input ) const;
 
 /// Fit the track
 template< typename T >
@@ -123,12 +152,16 @@ class ES_TTTrackAlgorithm_AMBE : public edm::ESProducer
     /// Number of Sectors
     unsigned int  mSectors;
     unsigned int  mWedges;
+    std::string mBKName;
+    int mThresh;
 
   public:
     /// Constructor
     ES_TTTrackAlgorithm_AMBE( const edm::ParameterSet & p )
       : mSectors( p.getParameter< int >("NumSectors") ),
-        mWedges( p.getParameter< int >("NumWedges") )
+        mWedges( p.getParameter< int >("NumWedges") ),
+        mBKName( p.getParameter< std::string >("inputBankFile") ),
+        mThresh( p.getParameter< int >("threshold") )
     {
       setWhatProduced( this );
     }
@@ -152,7 +185,9 @@ class ES_TTTrackAlgorithm_AMBE : public edm::ESProducer
         new TTTrackAlgorithm_AMBE< T >( &(*StackedTrackerGeomHandle),
                                         mMagneticFieldRounded,
                                         mSectors,
-                                        mWedges );
+                                        mWedges,
+					mBKName,
+					mThresh);
 
       _theAlgo = boost::shared_ptr< TTTrackAlgorithm< T > >( TTTrackAlgo );
       return _theAlgo;

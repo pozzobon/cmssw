@@ -65,12 +65,11 @@ class TTTrackAlgorithm
     }
 
     /// AM Pattern Finding
-    virtual void PatternFinding() const
-    {}
-
-    /// AM Pattern Recognition
-    virtual void PatternRecognition() const
-    {}
+    virtual void PatternFinding(std::vector< TTTrack< T > > &output,
+				edm::Handle< std::vector< TTStub< T > > > &input ) const
+    {
+      output.clear();
+    }
 
     virtual unsigned int ReturnNumberOfSectors() const { return 1; } 
     virtual unsigned int ReturnNumberOfWedges() const  { return 1; }
