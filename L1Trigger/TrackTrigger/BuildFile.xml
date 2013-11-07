@@ -31,6 +31,8 @@
 <use   name="clhep"/>
 <use   name="xerces-c"/>
 <use   name="boost"/>
+<lib   name="boost_serialization"/>
+<lib   name="boost_program_options"/>
 <use   name="root"/>
 <use   name="rootrflx"/>
 <use   name="DataFormats/SiPixelDetId"/>
