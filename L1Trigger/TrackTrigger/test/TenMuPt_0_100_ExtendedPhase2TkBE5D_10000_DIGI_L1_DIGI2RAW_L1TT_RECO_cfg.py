@@ -27,13 +27,13 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(100)
 )
 
 # Input source
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/p/pozzo/workspace0/CMSSW_6_2_0_SLHC1/src/L1Trigger/TrackTrigger/test/TenMuPt_0_100_ExtendedPhase2TkBE5D_10000_GEN_SIM.root')
+    fileNames = cms.untracked.vstring('file:PROVA.root')
 )
 
 process.options = cms.untracked.PSet(

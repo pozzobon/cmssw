@@ -24,6 +24,7 @@
 #include "Geometry/TrackerGeometryBuilder/interface/PixelGeomDetUnit.h"
 #include "Geometry/TrackerGeometryBuilder/interface/StackedTrackerGeometry.h"
 #include "MagneticField/Engine/interface/MagneticField.h"
+#include "L1Trigger/TrackTrigger/interface/TKSector.h"
 
 #include <sstream>
 #include <map>
@@ -49,29 +50,29 @@ class TTTrackAlgorithm
     /// Destructor
     virtual ~TTTrackAlgorithm(){}
 
-    /// Seed creation
-    virtual void CreateSeeds( std::vector< TTTrack< T > > &output,
-                              std::map< std::pair< unsigned int, unsigned int >, std::vector< edm::Ptr< TTStub< T > > > > *outputSectorMap,
-                              edm::Handle< std::vector< TTStub< T > > > &input ) const
+    /// Fill sectors with stubs and structures
+    virtual void FillSectors( std::map< std::pair< unsigned int, unsigned int >, TKSector< T > > *outputSectorMap,
+                              edm::Handle< std::vector< TTStub< Ref_PixelDigi_ > > > &input ) const
     {
-      output.clear();
+      outputSectorMap->clear();
     }
 
-    /// Seed propagation
-    virtual void FindMatches( TTTrack< T > &inputSeed,
-                              std::map< std::pair< unsigned int, unsigned int >, std::vector< edm::Ptr< TTStub< T > > > > *inputSectorMap,
-                              unsigned int nSectors,
-                              unsigned int nWedges ) const
+    /// Find the Seeds
+    virtual void FindSeeds( std::vector< TTTrack< T > > *output,
+                            std::map< std::pair< unsigned int, unsigned int >, TKSector< T > > *inputSectorMap ) const
     {
-      /// Do nothing
+      output->clear();
     }
 
-    /// Match a Stub to a Seed/Track
-    virtual void AttachStubToSeed( TTTrack< T > &seed,
-                                   edm::Ptr< TTStub< T > > &candidate ) const
+    /// Propagate the Seeds
+    virtual void FindMatches( std::vector< TTTrack< T > > *output,
+                              std::map< std::pair< unsigned int, unsigned int >, TKSector< T > > *inputSectorMap ) const
     {
-      seed.addStubPtr( candidate );
+      output->clear();
     }
+
+    /// Remove the duplicates
+    virtual void RemoveDuplicates( std::vector< TTTrack< T > > *output, std::vector< TTTrack< T > > *input ) const;
 
     /// AM Pattern Finding
     virtual void PatternFinding() const
@@ -98,12 +99,131 @@ class TTTrackAlgorithm
 
 }; /// Close class
 
+
+
+
+
 /*! \brief   Implementation of methods
  *  \details Here, in the header file, the methods which do not depend
  *           on the specific type <T> that can fit the template.
  *           Other methods, with type-specific features, are implemented
  *           in the source file.
  */
+
+/// Remove the duplicates
+template< typename T >
+void TTTrackAlgorithm< T >::RemoveDuplicates( std::vector< TTTrack< T > > *output, std::vector< TTTrack< T > > *input ) const
+{
+  /// Prepare output
+  output->clear();
+
+  /// Prepare the vector of booleans to matk the tracks to be deleted
+  std::vector< bool > toBeDeleted;
+  toBeDeleted.assign( input->size(), false );
+
+  for ( unsigned int i = 0; i < input->size(); i++ )
+  {
+    /// This check is necessary as the bool may be reset in a previous iteration
+    if ( toBeDeleted.at(i) )
+      continue;
+
+    /// Check if the track has min 3 stubs
+    if ( input->at(i).getStubPtrs().size() < 3 )
+      continue;
+
+    /// Count the number of PS stubs
+    unsigned int nPSi = 0;
+    for ( unsigned int is = 0; is < input->at(i).getStubPtrs().size(); is++ )
+    {
+      StackedTrackerDetId stDetId( input->at(i).getStubPtrs().at(is)->getDetId() );
+      bool isPS = theStackedTracker->isPSModule( stDetId );
+      if ( isPS )
+        nPSi++;
+    }
+
+    bool hasBL1i = input->at(i).hasStubInBarrel(1);
+
+    /// Nested loop to compare tracks with each other
+    for ( unsigned int j = i+1 ; j < input->size(); j++ )
+    {
+      /// This check is necessary as the bool may be reset in a previous iteration
+      if ( toBeDeleted.at(j) )
+        continue;
+
+      /// Check if they are the same track
+      if ( input->at(i).isTheSameAs( input->at(j) ) )
+      {
+        /// Check if the track has min 3 stubs
+        if ( input->at(j).getStubPtrs().size() < 3 )
+          continue;
+
+        /// Count the number of PS stubs
+        unsigned int nPSj = 0;
+        for ( unsigned int js = 0; js < input->at(j).getStubPtrs().size(); js++ )
+        {
+          StackedTrackerDetId stDetId( input->at(j).getStubPtrs().at(js)->getDetId() );
+          bool isPS = theStackedTracker->isPSModule( stDetId );
+          if ( isPS )
+            nPSj++;
+        }
+
+        /// Choose the one with the largest number of PS stubs
+        if ( nPSi > nPSj )
+        {
+          toBeDeleted[j] = true;
+          continue;
+        }
+        else if ( nPSi < nPSj )
+        {
+          toBeDeleted[i] = true;
+          continue;
+        }
+        /// Here we are if the two tracks have the same number of PS stubs
+
+        /// Check which one has a stub in Barrel L1
+        bool hasBL1j = input->at(j).hasStubInBarrel(1);
+
+        if ( hasBL1i || hasBL1j )
+        {
+          if ( !hasBL1i )
+          {
+            toBeDeleted[i] = true;
+            continue;
+          }
+          if ( !hasBL1j )
+          {
+            toBeDeleted[j] = true;
+            continue;
+          }
+        }
+        /// We get here only if both have BL1 or both have not
+
+        /// Compare Chi2
+        if ( input->at(i).getChi2Red() > input->at(j).getChi2Red() )
+        {
+          toBeDeleted[i] = true;
+        }
+        else
+        {
+          toBeDeleted[j] = true;
+        }
+        continue;
+      }
+    }
+  } /// End of loop to assign the boolean flags
+
+  /// Store only the non-deleted tracks
+  /// (already tried using vector::erase, but something
+  /// odd had happened ... that's why it is this way)
+  for ( unsigned int i = 0; i < input->size(); i++ )
+  {
+    if ( toBeDeleted.at(i) )
+      continue;
+
+    output->push_back( input->at(i) );
+  }
+
+}
 
 /// Fit the track
 template< >

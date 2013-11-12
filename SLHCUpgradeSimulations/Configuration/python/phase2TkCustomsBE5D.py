@@ -225,13 +225,19 @@ def l1EventContent(process):
 
             getattr(process,b).outputCommands.append('keep PCaloHits_g4SimHits_*_*')
 
+            getattr(process,b).outputCommands.append('drop recoGenJets_*_*_*')
+            getattr(process,b).outputCommands.append('drop recoGenMETs_*_*_*')
+            getattr(process,b).outputCommands.append('drop recoGenParticles_*_*_*')
+            getattr(process,b).outputCommands.append('drop recoGenParticlesRefs_*_*_*')
+            getattr(process,b).outputCommands.append('drop recoMETs_*_*_*')
+
             getattr(process,b).outputCommands.append('keep SimTracks_g4SimHits_*_*')
             getattr(process,b).outputCommands.append('keep SimVertexs_g4SimHits_*_*')
 
+            getattr(process,b).outputCommands.append('drop *_genParticles_*_*')
+
             #getattr(process,b).outputCommands.append('keep *_mix_*_*')
             getattr(process,b).outputCommands.append('keep *_mix_MergedTrackTruth_*')
-
-            getattr(process,b).outputCommands.append('keep *_genParticles_*_*')
 
             getattr(process,b).outputCommands.append('keep *_TTClustersFromPixelDigis_*_*')
             getattr(process,b).outputCommands.append('keep *_TTStubsFromPixelDigis_*_*')
