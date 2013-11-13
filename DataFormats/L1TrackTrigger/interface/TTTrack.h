@@ -42,6 +42,7 @@ class TTTrack
     std::vector< edm::Ptr< TTStub< T > > > getStubPtrs() const        { return theStubPtrs; }
     void addStubPtr( edm::Ptr< TTStub< T > > aStub )                  { theStubPtrs.push_back( aStub ); }
     void setStubPtrs( std::vector< edm::Ptr< TTStub< T > > > aStubs ) { theStubPtrs = aStubs; }
+    void removeStubPtr( unsigned int stubIdx )                        { theStubPtrs.erase( theStubPtrs.begin() + stubIdx); }
 
     /// Track momentum
     GlobalVector getMomentum() const                   { return theMomentum; }
@@ -128,7 +129,7 @@ TTTrack< T >::~TTTrack(){}
 template< typename T >
 double TTTrack< T >::getChi2Red() const
 {
-  return theChi2/( 2*theStubPtrs.size() - 4 );
+  return theChi2/( 2*theStubPtrs.size() - 5 );
 }
 
 /// Duplicate identification

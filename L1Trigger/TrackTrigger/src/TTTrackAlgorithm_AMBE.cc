@@ -11,10 +11,10 @@
 
 #include "L1Trigger/TrackTrigger/interface/TTTrackAlgorithm_AMBE.h"
 
-/// Create Seeds
+/// Pattern finding
 template< >
 void TTTrackAlgorithm_AMBE< Ref_PixelDigi_ >::PatternFinding( std::vector< TTTrack< Ref_PixelDigi_ > > &output,
-							      edm::Handle< std::vector< TTStub< Ref_PixelDigi_ > > > &input ) const
+                                                              edm::Handle< std::vector< TTStub< Ref_PixelDigi_ > > > &input ) const
 {
 
   /// STEP 0
@@ -155,8 +155,8 @@ void TTTrackAlgorithm_AMBE< Ref_PixelDigi_ >::PatternFinding( std::vector< TTTra
      
       for(unsigned k=0;k<hits.size();k++) 
       {
-	edm::Ptr< TTStub< Ref_PixelDigi_ > > tempStubPtr( input, hits[k]->getID());
-	tempVec.push_back( tempStubPtr );
+        edm::Ptr< TTStub< Ref_PixelDigi_ > > tempStubPtr( input, hits[k]->getID());
+        tempVec.push_back( tempStubPtr );
       }
 
       TTTrack< Ref_PixelDigi_ > tempTrack( tempVec );

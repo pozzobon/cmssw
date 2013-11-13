@@ -21,6 +21,8 @@
         double distance = this->CosineTheorem( rho1, rho2, deltaPhi );
         double rInvOver2 = sin(deltaPhi)/distance; /// Sign is maintained to keep track of the charge
         */
-        
-        double rInvOver2 = this->FindRInvOver2( rho1, rho2, phi1, phi2 );
+ 
+        /// NOTE: it is important that one correctly calculates the sign
+        /// of deltaPhi: first argument MUST be the outer stub position
+        double rInvOver2 = this->FindRInvOver2( rho2, rho1, phi2, phi1 );
 

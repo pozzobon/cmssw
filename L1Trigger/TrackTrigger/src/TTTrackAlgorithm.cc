@@ -21,6 +21,7 @@ void TTTrackAlgorithm< Ref_PixelDigi_ >::FitTrack( TTTrack< Ref_PixelDigi_ > &se
   double seedRInv = seed.getRInv();
   double seedPhi0 = seedMomentum.phi();
   double seedZ0 = seedVertex.z();
+  double seedD0 = seedVertex.perp();
   double seedCotTheta0 = tan( M_PI_2 - seedMomentum.theta() );
 
 #include "L1Trigger/TrackTrigger/src/TTTrackAlgorithm_TrackFit.icc"
@@ -28,8 +29,8 @@ void TTTrackAlgorithm< Ref_PixelDigi_ >::FitTrack( TTTrack< Ref_PixelDigi_ > &se
   seed.setMomentum( GlobalVector( newPt*cos(newPhi0),
                                   newPt*sin(newPhi0),
                                   newPt*newCotTheta0 ) );
-  seed.setVertex( GlobalPoint( 0, 0, seedZ0 + dZ0 ) );
+  seed.setVertex( GlobalPoint( -newD0*sin(newPhi0), newD0*cos(newPhi0), newZ0 ) );
   seed.setRInv( newRInv );
-  seed.setChi2( chiSquare );
+  seed.setChi2( chiSquare ); /// Already updated
 }
 

@@ -1,9 +1,9 @@
     double propPsi = 0.5*( zCand - curZVtx ) * curRInv / tan( M_PI_2 - curTheta );
-    double propPhi = curPhi - propPsi;
+    double propPhi = curPhi + propPsi;
     double propRho = 2 * sin( propPsi ) / curRInv;
 
     /// Calculate displacement
-    /*
+/* NP7
     double deltaPhi = phiCand - propPhi;
     if ( fabs(deltaPhi) >= M_PI )
     {
@@ -12,15 +12,20 @@
       else
         deltaPhi = 2*M_PI + deltaPhi;
     }
-    */
+*/
+
     double deltaPhi = this->DeltaPhi( phiCand, propPhi );
     double deltaRPhi = fabs( deltaPhi * rhoCand ); /// OLD VERSION (updated few lines below)
     double deltaR = fabs( rhoCand - propRho );
 
     /// NEW VERSION - non-pointing strips correction
+/* NP7
     double rhoTrack = 2.0 * sin( 0.5 * curRInv * ( zCand - curZVtx ) / tan( M_PI_2 - curTheta ) ) / curRInv;
-    double phiTrack = curPhi - 0.5 * curRInv * ( zCand - curZVtx ) / tan( M_PI_2 - curTheta );
-
+    double phiTrack = curPhi + 0.5 * curRInv * ( zCand - curZVtx ) / tan( M_PI_2 - curTheta );
+*/
     double stubPhiCorr = asin( stubTransvDispl / rhoCand );
+/* NP7
     deltaRPhi = stubTransvDispl - rhoTrack * sin( stubPhiCorr - phiTrack + phiCand );
+*/
 
+    deltaRPhi = stubTransvDispl - propRho * sin( stubPhiCorr - propPhi + phiCand );

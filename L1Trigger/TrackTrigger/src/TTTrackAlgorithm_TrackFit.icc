@@ -8,6 +8,9 @@
  *
  */
 
+  /// This code DOES NOT fit d0
+  double newD0 = seedD0;
+
   /// First step is to calculate derivatives
   /// First index is parameter, second index is stub
   /// Even stub index is for transverse plane, odd for r-z
@@ -59,7 +62,7 @@
     {
       /// Transverse plane: [0] rInv, [1] phi0
       /// d(rho*phi)/d(rInv)
-      D_[0][js] = -0.5 * stubRho * stubRho / sqrt( 1 - 0.25*stubRho*stubRho*seedRInv*seedRInv ) / sigmaRhoPhi;
+      D_[0][js] = stubRho * stubRho / sqrt( 4. - stubRho * stubRho * seedRInv * seedRInv ) / sigmaRhoPhi;
       /// d(rho*phi)/d(phi0)
       D_[1][js] = stubRho / sigmaRhoPhi;
       /// d(rho*phi)/d(cotTheta0) = 0
@@ -67,13 +70,12 @@
       js++;
 
       /// Longitudinal plane: [2] cotTheta0, [3] z0
-      /// d(z)/d(rInv) = 0
-
-      //D_[0][js] = - stubRho / sigmaZ * ( -2 * seedCotTheta0 / ( seedRInv*seedRInv ) * asin( stubRho * seedRInv * 0.5 )  +2 * seedCotTheta0 * stubRho / seedRInv / sqrt( 4 - stubRho*stubRho*seedRInv*seedRInv ) );
-
+      /// d(z)/d(rInv) (close to 0 but non 0...)
+      D_[0][js] = ( - 2. * seedCotTheta0 / ( seedRInv * seedRInv ) * asin( stubRho * seedRInv * 0.5 ) ) / sigmaZ
+                + (   2. * seedCotTheta0 * stubRho / seedRInv / sqrt( 4. - stubRho*stubRho*seedRInv*seedRInv ) ) / sigmaZ;
       /// d(z)/d(phi0) = 0
       /// d(z)/d(cotTheta0)
-      D_[2][js] = 2. / seedRInv * asin( 0.5*seedRInv*stubRho ) / sigmaZ;
+      D_[2][js] = 2. / seedRInv * asin( 0.5 * seedRInv * stubRho ) / sigmaZ;
       /// d(z)/d(z0)
       D_[3][js] = 1.0 / sigmaZ;
       js++;
@@ -100,10 +102,10 @@
       D_[3][js] = dRho_dZ0 / sigmaZ;
       js++;
 
-      double dPhi_dRInv      = - 0.5 * ( stubZ - seedZ0 ) / ( seedCotTheta0 );
+      double dPhi_dRInv      = 0.5 * ( stubZ - seedZ0 ) / ( seedCotTheta0 );
       double dPhi_dPhi0      = 1;
-      double dPhi_dCotTheta0 = 0.5 * seedRInv * ( stubZ - seedZ0 ) / ( seedCotTheta0 * seedCotTheta0 ); 
-      double dPhi_dZ0        = 0.5 * seedRInv / seedCotTheta0;
+      double dPhi_dCotTheta0 = - 0.5 * seedRInv * ( stubZ - seedZ0 ) / ( seedCotTheta0 * seedCotTheta0 );  
+      double dPhi_dZ0        = - 0.5 * seedRInv / seedCotTheta0;
 
       /// Transverse plane
       /*
@@ -120,7 +122,7 @@
 
       /// NEW VERSION - non-pointing strips correction
       double rhoTrack = 2.0 * sin( 0.5 * seedRInv * ( stubZ - seedZ0 ) / seedCotTheta0 ) / seedRInv;
-      double phiTrack = seedPhi0 - 0.5 * seedRInv * ( stubZ - seedZ0 ) / seedCotTheta0;
+      double phiTrack = seedPhi0 + 0.5 * seedRInv * ( stubZ - seedZ0 ) / seedCotTheta0;
 
       /// Calculate a correction for non-pointing-strips in square modules
       /// Relevant angle is the one between hit and module center, with
@@ -135,10 +137,12 @@
       /// The center of the module is at NROWS/2 (position) and NROWS-0.5 (coordinates)
       MeasurementPoint stubCoord = curStubs.at(is)->getClusterPtr(0)->findAverageLocalCoordinates();
       double stubTransvDispl = pitch0.first * ( stubCoord.x() - (top0->nrows()/2 - 0.5) ); /// Difference in coordinates is the same as difference in position
+
       if ( stubZ > 0 )
       {
         stubTransvDispl = - stubTransvDispl;
       }
+
       double stubPhiCorr = asin( stubTransvDispl / stubRho );
       double rhoMultiplier = - sin( stubPhiCorr - phiTrack + stubPhi );
       double phiMultiplier = rhoTrack * cos( stubPhiCorr - phiTrack + stubPhi ); 
@@ -268,11 +272,15 @@
     /// Residuals!
     if ( stDetId.isBarrel() )
     {
-      double deltaPhi = seedPhi0 - asin( 0.5*stubRho*seedRInv ) - stubPhi;
+      double deltaPhi = seedPhi0 + asin( 0.5*stubRho*seedRInv ) - stubPhi;
       if ( deltaPhi > M_PI )
+      {
         deltaPhi -= 2*M_PI;
+      }
       if ( deltaPhi < -1*M_PI )
+      {
         deltaPhi += 2*M_PI;
+      }
 
       /// Transverse plane  
       delta[js++] = stubRho * deltaPhi / sigmaRhoPhi;
@@ -282,13 +290,15 @@
     else if ( stDetId.isEndcap() )
     {
       /*
-      double deltaPhi = seedPhi0 - 0.5 * seedRInv * ( stubZ - seedZ0 ) / seedCotTheta0 - stubPhi;
+      double deltaPhi = seedPhi0 + 0.5 * seedRInv * ( stubZ - seedZ0 ) / seedCotTheta0 - stubPhi;
       if ( deltaPhi > M_PI )
+      {
         deltaPhi -= 2*M_PI;
+      }
       if ( deltaPhi < -1*M_PI )
+      {
         deltaPhi += 2*M_PI;
-      */
-      /*
+      }
       /// OLD VERSION
       /// Radial plane
       delta[js++] = ( 2.0 * sin ( 0.5 * seedRInv * ( stubZ - seedZ0 ) / seedCotTheta0 ) / seedRInv - stubRho ) / sigmaZ;
@@ -297,7 +307,7 @@
       */
 
       double rhoTrack = 2.0 * sin( 0.5 * seedRInv * ( stubZ - seedZ0 ) / seedCotTheta0 ) / seedRInv;
-      double phiTrack = seedPhi0 - 0.5 * seedRInv * ( stubZ - seedZ0 ) / seedCotTheta0;
+      double phiTrack = seedPhi0 + 0.5 * seedRInv * ( stubZ - seedZ0 ) / seedCotTheta0;
       double stubPhi = curPos.phi();
 
       /// Calculate a correction for non-pointing-strips in square modules
@@ -318,8 +328,6 @@
         stubTransvDispl = - stubTransvDispl;
       }
       double stubPhiCorr = asin( stubTransvDispl / stubRho );
-      //double rhoMultiplier = - sin( stubPhiCorr - phiTrack + stubPhi );
-      //double phiMultiplier = rhoTrack * cos( stubPhiCorr - phiTrack + stubPhi );
       double deltaRhoPhiCorr = stubTransvDispl - rhoTrack*sin( stubPhiCorr - phiTrack + stubPhi );
 
       /// NEW VERSION
@@ -381,8 +389,8 @@
   double newRInv = seedRInv + dRInv;
   double newPhi0 = seedPhi0 + dPhi0;
   double newCotTheta0 = seedCotTheta0 + dCotTheta0;
+  double newZ0 = seedZ0 + dZ0;
 
   double mMagneticField = this->ReturnMagneticField();
-
   double newPt = fabs( mMagneticField*0.003 / newRInv );
 

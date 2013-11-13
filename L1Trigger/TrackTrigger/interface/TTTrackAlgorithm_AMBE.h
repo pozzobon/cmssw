@@ -52,13 +52,13 @@ class TTTrackAlgorithm_AMBE : public TTTrackAlgorithm< T >
 {
   private :
     /// Data members
-    double       mMagneticField;
-    unsigned int nSectors;
-    unsigned int nWedges;
-    std::string  nBKName;
-    int          nThresh;
-    SectorTree   m_st;
-    PatternFinder           *m_pf;
+    double        mMagneticField;
+    unsigned int  nSectors;
+    unsigned int  nWedges;
+    std::string   nBKName;
+    int           nThresh;
+    SectorTree    m_st; //NP7 cambiare nome
+    PatternFinder *m_pf; //NP7 cambiare nome
 
     //    std::vector<Hit*> m_hits;
 
@@ -68,8 +68,8 @@ class TTTrackAlgorithm_AMBE : public TTTrackAlgorithm< T >
                            double aMagneticField,
                            unsigned int aSectors,
                            unsigned int aWedges,
-			   std::string   aBKName,
-			   int aThresh)
+                           std::string aBKName,
+                           int aThresh )
       : TTTrackAlgorithm< T > ( aStackedGeom, __func__ )
     {
       mMagneticField = aMagneticField;
@@ -77,16 +77,15 @@ class TTTrackAlgorithm_AMBE : public TTTrackAlgorithm< T >
       nWedges  = aWedges;
       nBKName  = aBKName;
       nThresh  = aThresh;
-      
-      cout << "Loading pattern bank file : " << endl;
-      cout << nBKName << endl;
-      
+
+      std::cout << "Loading pattern bank file : " << std::endl;
+      std::cout << nBKName << std::endl;
+
       std::ifstream ifs(nBKName.c_str());
       boost::archive::text_iarchive ia(ifs);
-            
+
       ia >> m_st;
-      m_pf = new PatternFinder(m_st.getSuperStripSize(), nThresh, &m_st, "", "");
-     
+      m_pf = new PatternFinder( m_st.getSuperStripSize(), nThresh, &m_st, "", "" );
     }
 
     /// Destructor
@@ -96,8 +95,8 @@ class TTTrackAlgorithm_AMBE : public TTTrackAlgorithm< T >
     void LoadBank() const;
 
     /// Pattern Finding
-    void PatternFinding(std::vector< TTTrack< T > > &output,                      
-			edm::Handle< std::vector< TTStub< T > > > &input) const;
+    void PatternFinding( std::vector< TTTrack< T > > &output,                      
+                         edm::Handle< std::vector< TTStub< T > > > &input ) const;
 
     /// Return the number of Sectors
     unsigned int ReturnNumberOfSectors() const { return nSectors; } /// Phi
@@ -118,10 +117,10 @@ class TTTrackAlgorithm_AMBE : public TTTrackAlgorithm< T >
  *           in the source file.
  */
 
-/// Create Seeds
+/// Find the patterns
 template< >
 void TTTrackAlgorithm_AMBE< Ref_PixelDigi_ >::PatternFinding( std::vector< TTTrack< Ref_PixelDigi_ > > &output,
-							      edm::Handle< std::vector< TTStub< Ref_PixelDigi_ > > > &input ) const;
+                                                              edm::Handle< std::vector< TTStub< Ref_PixelDigi_ > > > &input ) const;
 
 /// Fit the track
 template< typename T >
@@ -150,8 +149,8 @@ class ES_TTTrackAlgorithm_AMBE : public edm::ESProducer
     boost::shared_ptr< TTTrackAlgorithm< T > > _theAlgo;
 
     /// Number of Sectors
-    unsigned int  mSectors;
-    unsigned int  mWedges;
+    unsigned int mSectors;
+    unsigned int mWedges;
     std::string mBKName;
     int mThresh;
 
@@ -186,8 +185,8 @@ class ES_TTTrackAlgorithm_AMBE : public edm::ESProducer
                                         mMagneticFieldRounded,
                                         mSectors,
                                         mWedges,
-					mBKName,
-					mThresh);
+                                        mBKName,
+                                        mThresh );
 
       _theAlgo = boost::shared_ptr< TTTrackAlgorithm< T > >( TTTrackAlgo );
       return _theAlgo;
