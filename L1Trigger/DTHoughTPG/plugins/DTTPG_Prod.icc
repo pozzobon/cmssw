@@ -838,7 +838,7 @@ void DTTPG::RemoveDuplicates( std::vector< DTHough< RefDTDigi_t > > *tempDTHough
     else if ( secCollSector == 14 ) secCollSector = 10;
     --secCollSector;
     outputPhiTrigger->push_back( L1MuDTChambPhDigi( static_cast< int >( std::round( (*tmpOutput)[idxBest].GetTrigTimeDiff()/25.) ),
-                                                    tmpId.wheel(), sc_sector, tmpId.station(),
+                                                    tmpId.wheel(), secCollSector, tmpId.station(),
                                                     static_cast< int >( std::round( (*tmpOutput)[idxBest].GetSectorPhi() * 65536 / 0.8 ) ),
                                                     static_cast< int >( std::round( (*tmpOutput)[idxBest].GetBendingPhi() * 2048 / 1.4 ) ),
                                                     (*tmpOutput)[idxBest].GetQuality(), 0,
@@ -852,7 +852,7 @@ void DTTPG::RemoveDuplicates( std::vector< DTHough< RefDTDigi_t > > *tempDTHough
     else if ( secCollSector == 14 ) secCollSector = 10;
     --secCollSector;
     outputPhiTrigger->push_back( L1MuDTChambPhDigi( static_cast< int >( std::round( (*tmpOutput)[idxSecond].GetTrigTimeDiff()/25.) ),
-                                                    tmpId.wheel(), sc_sector, tmpId.station(),
+                                                    tmpId.wheel(), secCollSector, tmpId.station(),
                                                     static_cast< int >( std::round( (*tmpOutput)[idxSecond].GetSectorPhi() * 65536 / 0.8 ) ),
                                                     static_cast< int >( std::round( (*tmpOutput)[idxSecond].GetBendingPhi() * 2048 / 1.4 ) ),
                                                     (*tmpOutput)[idxBest].GetQuality(), 1,
