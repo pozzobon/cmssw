@@ -98,7 +98,10 @@ void DTTPG::endRun( const edm::Run& aRun, const edm::EventSetup& anEventSetup ){
 
 void DTTPG::produce( edm::Event& anEvent, const edm::EventSetup& anEventSetup )
 {
-  int32_t localZeroTime = anEvent.eventAuxiliary().bunchCrossing() << 5;
+  int32_t evtBx = anEvent.eventAuxiliary().bunchCrossing();
+  if ( evtBx == -1 )
+    evtBx = 20;
+  int32_t localZeroTime = evtBx << 5;
   anEvent.getByToken( dtDigisToken, DTDigiHandle );
   anEventSetup.get< MuonGeometryRecord >().get( DTGeometryHandle );
 
