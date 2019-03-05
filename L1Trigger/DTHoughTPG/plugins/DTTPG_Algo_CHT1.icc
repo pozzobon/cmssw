@@ -169,11 +169,13 @@ void DTTPG::FillCHTHist( b3_Idx_t anInnerLayer,
   }
   for ( b5_Idx_t iPlace = iPlaceMin; iPlace < iPlaceMax; iPlace += 4 )
   {
-    if ( aTimeListByPlace[ iPlace ] == 0 )
+    if ( aTimeListByPlace[ iPlace ] == 0
+         || ( static_cast< CompTDC_t >( aTimeP ) > aTimeListByPlace[ iPlace ] + 8 ) )
       continue;
     for ( b5_Idx_t jPlace = jPlaceMin; jPlace < jPlaceMax; jPlace += 4 )
     {
-      if ( aTimeListByPlace[ jPlace ] == 0 )
+      if ( aTimeListByPlace[ iPlace ] == 0
+           || ( static_cast< CompTDC_t >( aTimeP ) > aTimeListByPlace[ iPlace ] + 8 ) )        
         continue;
       CompTDC_t driftTimeSum = ( aTimeListByPlace[ iPlace ] + aTimeListByPlace[ jPlace ] - 2 * static_cast< CompTDC_t >( aTimeP ) + tdcConstCorr ) * 1073 >> 8;
       CompTDC_t driftTimeDiff = ( aTimeListByPlace[ iPlace ] - aTimeListByPlace[ jPlace ] ) * 1073;
@@ -228,6 +230,8 @@ void DTTPG::UnpackCHTOneMC( TimeMMT_t vecHits[ NUM_MACROCELLWIRES ],
     MCellPos_t tempX0 = DEF_MCellPos;
     for ( b4_Idx_t jHit = 0; jHit < NUM_MACROCELLWIRES; ++jHit )      
     {
+      if ( ( static_cast< CompTDC_t >( aTimeP ) > vecHits[ jHit ] + 8 ) )
+        continue;
       b3_Idx_t thisWireLayer = idxToLayerMap[ jHit ];
       TimeMMT_t driftTime = vecHits[ jHit ] - aTimeP;
       MCellPos_t wireCoordinate = idxToCoordMap[ jHit ];
@@ -242,8 +246,8 @@ void DTTPG::UnpackCHTOneMC( TimeMMT_t vecHits[ NUM_MACROCELLWIRES ],
       expX0Left = ( expX0Left >> 1 ) + ( ( expX0Left & 1 ) && ( expX0Left < 0 ) );
       CompPos_t expX0Right = 2 * xRight + tempExpX0;
       expX0Right = ( expX0Right >> 1 ) + ( ( expX0Right & 1 ) && ( expX0Right < 0 ) );
-      X0Bin_t findTheBinLeft = static_cast< X0Bin_t >( ( expX0Left + 2048 + BINSIZE_X0_1 ) >> BINSIZE_X0_1_DIV ) - 1;
-      X0Bin_t findTheBinRight = static_cast< X0Bin_t >( ( expX0Right + 2048 + BINSIZE_X0_1 ) >> BINSIZE_X0_1_DIV ) - 1; 
+      X0Bin_t findTheBinLeft = static_cast< X0Bin_t >( ( expX0Left + HISTLOW_X0 + BINSIZE_X0_1 ) >> BINSIZE_X0_1_DIV ) - 1;
+      X0Bin_t findTheBinRight = static_cast< X0Bin_t >( ( expX0Right + HISTLOW_X0 + BINSIZE_X0_1 ) >> BINSIZE_X0_1_DIV ) - 1; 
       if ( findTheBinLeft >= 0 && findTheBinLeft < BINNUM_X0 )
         tempHist[ findTheBinLeft ] = ( tempHist[ findTheBinLeft ] << 1 ) + 1;
       if ( findTheBinRight >= 0 && findTheBinRight < BINNUM_X0 )

@@ -168,6 +168,9 @@ void DTTPG::StoreTempOutput( DTChamberId aChambId,
                              std::vector< DTHough< RefDTDigi_t > > *tempOutVector ) const
 {
   const DTChamber* tmpChamber = DTGeometryHandle->chamber( aChambId );
+  const DTSuperLayer *superLay1 = tmpChamber->superLayer( DTSuperLayerId( aChambId, 1 ) );
+  const DTSuperLayer *superLay3 = tmpChamber->superLayer( DTSuperLayerId( aChambId, 3 ) );
+  double zMidPlane = 0.5 * ( tmpChamber->surface().toLocal( superLay1->position() ).z() + tmpChamber->surface().toLocal( superLay3->position() ).z() );
   BOOL_t isPositiveWheel = this->CheckPositiveWheel( aChambId );
   int32_t tmpSector = aChambId.sector();
   if ( tmpSector == 13 ) tmpSector = 4;
@@ -227,7 +230,7 @@ void DTTPG::StoreTempOutput( DTChamberId aChambId,
       tempDTHough.SetHitLayers( tempHitLayerVec );
       if ( superLayer != 2 )
       {
-        GlobalPoint globalTrigPos = tmpChamber->toGlobal( LocalPoint( tempDTHough.GetTrigX0(), 0, 0 ) );
+        GlobalPoint globalTrigPos = tmpChamber->toGlobal( LocalPoint( tempDTHough.GetTrigX0(), 0, zMidPlane ) );
         double tmpGlobalPhi = globalTrigPos.phi();
         tempDTHough.SetGlobalPhi( tmpGlobalPhi );
         tmpGlobalPhi += ( tmpGlobalPhi < 0 ) ? 2*M_PI : 0;
@@ -237,7 +240,7 @@ void DTTPG::StoreTempOutput( DTChamberId aChambId,
       }
       else
       {
-        GlobalPoint globalTrigPos = tmpChamber->toGlobal( LocalPoint( 0, tempDTHough.GetTrigX0(), 0 ) );
+        GlobalPoint globalTrigPos = tmpChamber->toGlobal( LocalPoint( 0, tempDTHough.GetTrigX0(), zMidPlane ) );
         tempDTHough.SetGlobalTheta( globalTrigPos.theta() );
       }
       tempOutVector->push_back( tempDTHough );
@@ -262,6 +265,9 @@ void DTTPG::StoreTempOutput( DTChamberId aChambId,
                              std::vector< DTHough< RefDTDigi_t > > *tempOutVector ) const
 {
   const DTChamber* tmpChamber = DTGeometryHandle->chamber( aChambId );
+  const DTSuperLayer *superLay1 = tmpChamber->superLayer( DTSuperLayerId( aChambId, 1 ) );
+  const DTSuperLayer *superLay3 = tmpChamber->superLayer( DTSuperLayerId( aChambId, 3 ) );
+  double zMidPlane = 0.5 * ( tmpChamber->surface().toLocal( superLay1->position() ).z() + tmpChamber->surface().toLocal( superLay3->position() ).z() );
   BOOL_t isPositiveWheel = this->CheckPositiveWheel( aChambId );
   int32_t tmpSector = aChambId.sector();
   if ( tmpSector == 13 ) tmpSector = 4;
@@ -322,7 +328,7 @@ void DTTPG::StoreTempOutput( DTChamberId aChambId,
         }
         tempDTHough.SetHits( tempHitVec );
         tempDTHough.SetHitLayers( tempHitLayerVec );
-        GlobalPoint globalTrigPos = tmpChamber->toGlobal( LocalPoint( tempDTHough.GetTrigX0(), 0, 0 ) );
+        GlobalPoint globalTrigPos = tmpChamber->toGlobal( LocalPoint( tempDTHough.GetTrigX0(), 0, zMidPlane ) );
         double tmpGlobalPhi = globalTrigPos.phi();
         tempDTHough.SetGlobalPhi( tmpGlobalPhi );
         tmpGlobalPhi += ( tmpGlobalPhi < 0 ) ? 2*M_PI : 0;
@@ -381,7 +387,7 @@ void DTTPG::StoreTempOutput( DTChamberId aChambId,
         }
         tempDTHough.SetHits( tempHitVec );
         tempDTHough.SetHitLayers( tempHitLayerVec );
-        GlobalPoint globalTrigPos = tmpChamber->toGlobal( LocalPoint( tempDTHough.GetTrigX0(), 0, 0 ) );
+        GlobalPoint globalTrigPos = tmpChamber->toGlobal( LocalPoint( tempDTHough.GetTrigX0(), 0, zMidPlane ) );
         double tmpGlobalPhi = globalTrigPos.phi();
         tempDTHough.SetGlobalPhi( tmpGlobalPhi );
         tmpGlobalPhi += ( tmpGlobalPhi < 0 ) ? 2*M_PI : 0;
@@ -827,28 +833,30 @@ void DTTPG::RemoveDuplicates( std::vector< DTHough< RefDTDigi_t > > *tempDTHough
   if ( qualBest > 2 ) /// Only phi
   {
     DTChamberId tmpId = (*tmpOutput)[idxBest].GetDTChamberId();
-    int sc_sector = tmpId.sector();
-    if ( sc_sector == 13 ) sc_sector = 4;
-    else if ( sc_sector == 14 ) sc_sector = 10;
-    --sc_sector;
+    int secCollSector = tmpId.sector();
+    if ( secCollSector == 13 ) secCollSector = 4;
+    else if ( secCollSector == 14 ) secCollSector = 10;
+    --secCollSector;
     outputPhiTrigger->push_back( L1MuDTChambPhDigi( static_cast< int >( std::round( (*tmpOutput)[idxBest].GetTrigTimeDiff()/25.) ),
                                                     tmpId.wheel(), sc_sector, tmpId.station(),
-                                                    static_cast<int>((*tmpOutput)[idxBest].GetSectorPhi()*65536/0.8),
-                                                    static_cast<int>((*tmpOutput)[idxBest].GetBendingPhi()*2048/1.4),
-                                                    (*tmpOutput)[idxBest].GetQuality(), 0, 0 ));
+                                                    static_cast< int >( std::round( (*tmpOutput)[idxBest].GetSectorPhi() * 65536 / 0.8 ) ),
+                                                    static_cast< int >( std::round( (*tmpOutput)[idxBest].GetBendingPhi() * 2048 / 1.4 ) ),
+                                                    (*tmpOutput)[idxBest].GetQuality(), 0,
+                                                    static_cast< int >( (*tmpOutput)[idxBest].GetBXTime()/32 ) ) ); /// BxCnt used for absolute BX
   }
   if ( qualSecond > 2 ) /// Only phi
   {
     DTChamberId tmpId = (*tmpOutput)[idxSecond].GetDTChamberId();
-    int sc_sector = tmpId.sector();
-    if ( sc_sector == 13 ) sc_sector = 4;
-    else if ( sc_sector == 14 ) sc_sector = 10;
-    --sc_sector;
+    int secCollSector = tmpId.sector();
+    if ( secCollSector == 13 ) secCollSector = 4;
+    else if ( secCollSector == 14 ) secCollSector = 10;
+    --secCollSector;
     outputPhiTrigger->push_back( L1MuDTChambPhDigi( static_cast< int >( std::round( (*tmpOutput)[idxSecond].GetTrigTimeDiff()/25.) ),
                                                     tmpId.wheel(), sc_sector, tmpId.station(),
-                                                    static_cast<int>((*tmpOutput)[idxSecond].GetSectorPhi()*65536/0.8),
-                                                    static_cast<int>((*tmpOutput)[idxSecond].GetBendingPhi()*2048/1.4),
-                                                    (*tmpOutput)[idxBest].GetQuality(), 1, 0 ));
+                                                    static_cast< int >( std::round( (*tmpOutput)[idxSecond].GetSectorPhi() * 65536 / 0.8 ) ),
+                                                    static_cast< int >( std::round( (*tmpOutput)[idxSecond].GetBendingPhi() * 2048 / 1.4 ) ),
+                                                    (*tmpOutput)[idxBest].GetQuality(), 1,
+                                                    static_cast< int >( (*tmpOutput)[idxBest].GetBXTime()/32 ) ) ); /// BxCnt used for absolute BX
   }
 }
 
