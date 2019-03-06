@@ -76,7 +76,7 @@ InputBMask_t DTTPG::ConvertHit( int32_t localZeroTime, const std::pair< uint32_t
   uint32_t uThisWireSL = ( thisEncodedLayer & bmaskSuperLayer ) >> bit1SuperLayer;
   uint32_t uThisWireLayer = ( thisEncodedLayer & bmaskLayer ) >> bit1Layer;
   uint32_t uWireIndex = static_cast< uint32_t >( abs( thisHit.wire() ) );
-  double driftTime = ( thisHit.time() - 500. ) * ( 0x1 << 5 ) / 25.0;
+  double driftTime = ( thisHit.time() - localZeroTime*25./32. ) * ( 0x1 << 5 ) / 25.0; /// Convoluted, but would be misleading otherwise
   uint32_t uTime = static_cast< uint32_t >( fabs( driftTime + localZeroTime ) );
   if ( uTime > bmaskTime )
   {
