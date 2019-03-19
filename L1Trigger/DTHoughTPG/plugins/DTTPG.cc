@@ -102,11 +102,9 @@ void DTTPG::produce( edm::Event& anEvent, const edm::EventSetup& anEventSetup )
   if ( evtBx == -1 )
     evtBx = 20;
   int32_t localZeroTime = evtBx << 5;
+
   anEvent.getByToken( dtDigisToken, DTDigiHandle );
   anEventSetup.get< MuonGeometryRecord >().get( DTGeometryHandle );
-
-
-std::cerr << localZeroTime << std::endl;
 
   auto outputHoughTrig = std::make_unique< std::vector< DTHough< RefDTDigi_t > > >();
   auto outputHoughTrigSingleSL = std::make_unique< std::vector< DTHough< RefDTDigi_t > > >();

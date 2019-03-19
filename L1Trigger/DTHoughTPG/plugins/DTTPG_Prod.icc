@@ -837,6 +837,10 @@ void DTTPG::RemoveDuplicates( std::vector< DTHough< RefDTDigi_t > > *tempDTHough
     if ( secCollSector == 13 ) secCollSector = 4;
     else if ( secCollSector == 14 ) secCollSector = 10;
     --secCollSector;
+
+
+std::cerr << static_cast< int >( std::round( (*tmpOutput)[idxBest].GetTrigTimeDiff()/25.) )<< " " << static_cast< int >( (*tmpOutput)[idxBest].GetBXTime()/32 )  << std::endl;
+
     outputPhiTrigger->push_back( L1MuDTChambPhDigi( static_cast< int >( std::round( (*tmpOutput)[idxBest].GetTrigTimeDiff()/25.) ),
                                                     tmpId.wheel(), secCollSector, tmpId.station(),
                                                     static_cast< int >( std::round( (*tmpOutput)[idxBest].GetSectorPhi() * 65536 / 0.8 ) ),

@@ -4,8 +4,4 @@ import FWCore.ParameterSet.Config as cms
 #from L1TriggerConfig.DTTPGConfigProducers.L1DTTPGConfig_cff import *
 
 DTTPG = cms.EDProducer( "DTTPG",
-  #OnlyRPhi = cms.untracked.bool(True),
-  #SingleChamberTest = cms.untracked.bool(True),
-  FirstBX = cms.untracked.int32(0),
-  LastBX = cms.untracked.int32(3564)
 )
