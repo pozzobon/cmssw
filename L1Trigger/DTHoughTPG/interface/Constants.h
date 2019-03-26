@@ -1,7 +1,7 @@
 #ifndef DTCHT_Constants_H
 #define DTCHT_Constants_H
 
-//#define DATA_TEST
+#define DATA_TEST
 
 //#define ALSO_THETA
 #define MAX_MACROCELLS 50
