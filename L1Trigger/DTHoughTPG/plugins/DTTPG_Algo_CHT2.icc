@@ -233,7 +233,6 @@ CHTBitset_t DTTPG::RunCHTTwoMC( MCellPos_t aMCellXDiff,
     return 0;
   if ( checkCnt1 + checkCnt3 < 6 )
     return 0;
-#ifndef DATA_TEST
   this->FillCHTHist( 3, 0, timeByPlace1, timeByPlace3, aMCellXDiff, 2, 4, 543, 14, 95, 13, tempHist, aTimeP );
   this->FillCHTHist( 2, 0, timeByPlace1, timeByPlace3, aMCellXDiff, 2, 4, 255, 13, 89, 13, tempHist, aTimeP );
   this->FillCHTHist( 3, 1, timeByPlace1, timeByPlace3, aMCellXDiff, 2, 4, 255, 13, 89, 13, tempHist, aTimeP );
@@ -250,24 +249,6 @@ CHTBitset_t DTTPG::RunCHTTwoMC( MCellPos_t aMCellXDiff,
   this->FillCHTHist( 0, 2, timeByPlace1, timeByPlace3, aMCellXDiff, 1, 1, 51, 11, 571, 16, tempHist, aTimeP );
   this->FillCHTHist( 1, 3, timeByPlace1, timeByPlace3, aMCellXDiff, 1, 1, 51, 11, 571, 16, tempHist, aTimeP );
   this->FillCHTHist( 0, 3, timeByPlace1, timeByPlace3, aMCellXDiff, 1, 1, 389, 14, 17, 11, tempHist, aTimeP );
-#else
-  this->FillCHTHist( 3, 0, timeByPlace1, timeByPlace3, aMCellXDiff, 2, 4, 543, 14, 94, 13, tempHist, aTimeP );
-  this->FillCHTHist( 2, 0, timeByPlace1, timeByPlace3, aMCellXDiff, 2, 4, 255, 13, 88, 13, tempHist, aTimeP );
-  this->FillCHTHist( 3, 1, timeByPlace1, timeByPlace3, aMCellXDiff, 2, 4, 255, 13, 88, 13, tempHist, aTimeP );
-  this->FillCHTHist( 1, 0, timeByPlace1, timeByPlace3, aMCellXDiff, 1, 1, 15, 9, 664, 16, tempHist, aTimeP );
-  this->FillCHTHist( 2, 1, timeByPlace1, timeByPlace3, aMCellXDiff, 1, 1, 15, 9, 664, 16, tempHist, aTimeP );
-  this->FillCHTHist( 3, 2, timeByPlace1, timeByPlace3, aMCellXDiff, 1, 1, 15, 9, 664, 16, tempHist, aTimeP );
-  this->FillCHTHist( 0, 0, timeByPlace1, timeByPlace3, aMCellXDiff, 1, 1, 453, 14, 314, 15, tempHist, aTimeP );
-  this->FillCHTHist( 1, 1, timeByPlace1, timeByPlace3, aMCellXDiff, 1, 1, 453, 14, 314, 15, tempHist, aTimeP );
-  this->FillCHTHist( 2, 2, timeByPlace1, timeByPlace3, aMCellXDiff, 1, 1, 453, 14, 314, 15, tempHist, aTimeP );
-  this->FillCHTHist( 3, 3, timeByPlace1, timeByPlace3, aMCellXDiff, 1, 1, 453, 14, 314, 15, tempHist, aTimeP );
-  this->FillCHTHist( 0, 1, timeByPlace1, timeByPlace3, aMCellXDiff, 1, 1, 429, 14, 74, 13, tempHist, aTimeP );
-  this->FillCHTHist( 1, 2, timeByPlace1, timeByPlace3, aMCellXDiff, 1, 1, 429, 14, 74, 13, tempHist, aTimeP );
-  this->FillCHTHist( 2, 3, timeByPlace1, timeByPlace3, aMCellXDiff, 1, 1, 429, 14, 74, 13, tempHist, aTimeP );
-  this->FillCHTHist( 0, 2, timeByPlace1, timeByPlace3, aMCellXDiff, 1, 1, 51, 11, 565, 16, tempHist, aTimeP );
-  this->FillCHTHist( 1, 3, timeByPlace1, timeByPlace3, aMCellXDiff, 1, 1, 51, 11, 565, 16, tempHist, aTimeP );
-  this->FillCHTHist( 0, 3, timeByPlace1, timeByPlace3, aMCellXDiff, 1, 1, 389, 14, 17, 11, tempHist, aTimeP );
-#endif
   CHTBitset_t bitSet68(0);
   for ( CHTBin_t iBin = 0; iBin < BINNUM_TANPHI; ++iBin )
   {
@@ -346,13 +327,8 @@ void DTTPG::FillCHTHist( b3_Idx_t anInnerLayer,
       if ( aTimeListByPlace3[ jPlace ] == 0
            || ( static_cast< CompTDC_t >( aTimeP ) > aTimeListByPlace3[ jPlace ] + 8 ) )
         continue;
-#ifndef DATA_TEST
       CompTDC_t driftTimeSum = ( aTimeListByPlace1[ iPlace ] + aTimeListByPlace3[ jPlace ] - 2 * aTimeP + tdcConstCorr ) * 1073 >> 8;
       CompTDC_t driftTimeDiff = ( aTimeListByPlace1[ iPlace ] - aTimeListByPlace3[ jPlace ] ) * 1073;
-#else
-      CompTDC_t driftTimeSum = ( aTimeListByPlace1[ iPlace ] + aTimeListByPlace3[ jPlace ] - 2 * aTimeP + tdcConstCorr ) * 1061 >> 8;
-      CompTDC_t driftTimeDiff = ( aTimeListByPlace1[ iPlace ] - aTimeListByPlace3[ jPlace ] ) * 1061;
-#endif
       driftTimeDiff = ( driftTimeDiff >> 8 ) + ( ( driftTimeDiff & 1 ) && ( driftTimeDiff < 0 ) );
       MCellPos_t xWireDiff = idxToCoordMap[ jPlace ] - idxToCoordMap[ iPlace ] + aMCellXDiff;
       MCellPos_t xMCellDiff[4] = { xWireDiff + static_cast< MCellPos_t >( driftTimeDiff ),

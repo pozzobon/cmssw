@@ -1,8 +1,6 @@
 #ifndef DTCHT_Constants_H
 #define DTCHT_Constants_H
 
-//#define DATA_TEST
-
 //#define ALSO_THETA
 #define MAX_MACROCELLS 50
 #define MAX_CHAMBERHITS 200
@@ -86,11 +84,7 @@ const double defUnitX = defDTCellWidth / 1024.;
 const double defDTSuperLayerDistance = 23.50; /// cm
 //const double defDTDriftVelocity = 0.0055; /// cm/ns
 
-#ifndef DATA_TEST
 const TimeMMT_t defMaxDriftTime = 122;
-#else
-const TimeMMT_t defMaxDriftTime = 124;
-#endif
 
 enum HoughQuality
 {

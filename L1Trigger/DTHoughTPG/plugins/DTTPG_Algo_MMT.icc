@@ -183,11 +183,6 @@ TimeMMT_t DTTPG::ComputeCorrection( b2_Idx_t corrNumber,
       return 0;
   }
 
-#ifdef DATA_TEST
-if ( normTimeDiff > 45 )
-  normTimeDiff -= 1;
-#endif
-
   if ( normTimeDiff > 128 )
     normTimeDiff = 128;
   return mmtNonLinCorr[ normTimeDiff ];
