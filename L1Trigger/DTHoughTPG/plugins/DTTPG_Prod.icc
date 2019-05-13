@@ -92,6 +92,22 @@ InputBMask_t DTTPG::ConvertHit( int32_t localZeroTime, const std::pair< uint32_t
                       ( ( uTDC << bit1TDC ) & bmaskTDC );
 }
 
+bool DTTPG::PhiBQualSortDTHough( const DTHough< RefDTDigi_t > firstDTHough,
+                                 const DTHough< RefDTDigi_t > secondDTHough )
+{
+
+  uint32_t firstQual = firstDTHough.GetQuality();
+  uint32_t secondQual = secondDTHough.GetQuality();
+
+  double firstBend = firstDTHough.GetBendingPhi();
+  double secondBend = secondDTHough.GetBendingPhi();
+
+  if ( firstQual == secondQual )
+    return ( fabs( firstBend ) > fabs( secondBend ) );
+
+  return ( firstQual > secondQual );
+}
+
 void DTTPG::StoreTempOutput( DTChamberId aChambId,
                              uint32_t superLayer,
                              int32_t localZeroTime,
@@ -237,6 +253,19 @@ void DTTPG::StoreTempOutput( DTChamberId aChambId,
         tmpGlobalPhi -= tmpSector * M_PI/6.;
         tmpGlobalPhi -= ( tmpGlobalPhi > M_PI ) ? 2*M_PI : 0;
         tempDTHough.SetSectorPhi( tmpGlobalPhi + isPositiveWheel * 4.*M_PI );
+
+        double zSuperLayer = 0;
+        if ( superLayer == 1 )
+          zSuperLayer = tmpChamber->surface().toLocal( superLay1->position() ).z();
+        else if ( superLayer == 3 )
+          zSuperLayer = tmpChamber->surface().toLocal( superLay3->position() ).z();
+        GlobalPoint globalTrigPosSL = tmpChamber->toGlobal( LocalPoint( tempDTHough.GetUnprojectedTrigX0(), 0, zSuperLayer ) );
+        double tmpGlobalPhiSL = globalTrigPosSL.phi();
+        tempDTHough.SetGlobalPhiSL( tmpGlobalPhiSL );
+        tmpGlobalPhiSL += ( tmpGlobalPhiSL < 0 ) ? 2*M_PI : 0;
+        tmpGlobalPhiSL -= tmpSector * M_PI/6.;
+        tmpGlobalPhiSL -= ( tmpGlobalPhiSL > M_PI ) ? 2*M_PI : 0;
+        tempDTHough.SetSectorPhiSL( tmpGlobalPhiSL + isPositiveWheel * 4.*M_PI );
       }
       else
       {
@@ -331,10 +360,30 @@ void DTTPG::StoreTempOutput( DTChamberId aChambId,
         GlobalPoint globalTrigPos = tmpChamber->toGlobal( LocalPoint( tempDTHough.GetTrigX0(), 0, zMidPlane ) );
         double tmpGlobalPhi = globalTrigPos.phi();
         tempDTHough.SetGlobalPhi( tmpGlobalPhi );
+        if ( tempFiredSuperLayers == 4 )
+          tempDTHough.SetGlobalPhiSL( tmpGlobalPhi );
         tmpGlobalPhi += ( tmpGlobalPhi < 0 ) ? 2*M_PI : 0;
         tmpGlobalPhi -= tmpSector * M_PI/6.;
         tmpGlobalPhi -= ( tmpGlobalPhi > M_PI ) ? 2*M_PI : 0;
         tempDTHough.SetSectorPhi( tmpGlobalPhi + isPositiveWheel * 4.*M_PI );
+        if ( tempFiredSuperLayers == 4 )
+          tempDTHough.SetSectorPhiSL( tmpGlobalPhi + isPositiveWheel * 4.*M_PI );
+
+        if ( tempFiredSuperLayers != 4 )
+        {
+          double zSuperLayer = 0;
+          if ( tempFiredSuperLayers == 1 )
+            zSuperLayer = tmpChamber->surface().toLocal( superLay1->position() ).z();
+          else if ( tempFiredSuperLayers == 3 )
+            zSuperLayer = tmpChamber->surface().toLocal( superLay3->position() ).z();
+          GlobalPoint globalTrigPosSL = tmpChamber->toGlobal( LocalPoint( tempDTHough.GetUnprojectedTrigX0(), 0, zSuperLayer ) );
+          double tmpGlobalPhiSL = globalTrigPosSL.phi();
+          tempDTHough.SetGlobalPhiSL( tmpGlobalPhiSL );
+          tmpGlobalPhiSL += ( tmpGlobalPhiSL < 0 ) ? 2*M_PI : 0;
+          tmpGlobalPhiSL -= tmpSector * M_PI/6.;
+          tmpGlobalPhiSL -= ( tmpGlobalPhiSL > M_PI ) ? 2*M_PI : 0;
+          tempDTHough.SetSectorPhiSL( tmpGlobalPhiSL + isPositiveWheel * 4.*M_PI );
+        }
         tempOutVector->push_back( tempDTHough );
       }
     }
@@ -390,10 +439,30 @@ void DTTPG::StoreTempOutput( DTChamberId aChambId,
         GlobalPoint globalTrigPos = tmpChamber->toGlobal( LocalPoint( tempDTHough.GetTrigX0(), 0, zMidPlane ) );
         double tmpGlobalPhi = globalTrigPos.phi();
         tempDTHough.SetGlobalPhi( tmpGlobalPhi );
+        if ( tempFiredSuperLayers == 4 )
+          tempDTHough.SetGlobalPhiSL( tmpGlobalPhi );
         tmpGlobalPhi += ( tmpGlobalPhi < 0 ) ? 2*M_PI : 0;
         tmpGlobalPhi -= tmpSector * M_PI/6.;
         tmpGlobalPhi -= ( tmpGlobalPhi > M_PI ) ? 2*M_PI : 0;
         tempDTHough.SetSectorPhi( tmpGlobalPhi + isPositiveWheel * 4.*M_PI );
+        if ( tempFiredSuperLayers == 4 )
+          tempDTHough.SetSectorPhiSL( tmpGlobalPhi + isPositiveWheel * 4.*M_PI );
+
+        if ( tempFiredSuperLayers != 4 )
+        {
+          double zSuperLayer = 0;
+          if ( tempFiredSuperLayers == 1 )
+            zSuperLayer = tmpChamber->surface().toLocal( superLay1->position() ).z();
+          else if ( tempFiredSuperLayers == 3 )
+            zSuperLayer = tmpChamber->surface().toLocal( superLay3->position() ).z();
+          GlobalPoint globalTrigPosSL = tmpChamber->toGlobal( LocalPoint( tempDTHough.GetUnprojectedTrigX0(), 0, zSuperLayer ) );
+          double tmpGlobalPhiSL = globalTrigPosSL.phi();
+          tempDTHough.SetGlobalPhiSL( tmpGlobalPhiSL );
+          tmpGlobalPhiSL += ( tmpGlobalPhiSL < 0 ) ? 2*M_PI : 0;
+          tmpGlobalPhiSL -= tmpSector * M_PI/6.;
+          tmpGlobalPhiSL -= ( tmpGlobalPhiSL > M_PI ) ? 2*M_PI : 0;
+          tempDTHough.SetSectorPhiSL( tmpGlobalPhiSL + isPositiveWheel * 4.*M_PI );
+        }
         tempOutVector->push_back( tempDTHough );
       }
     }
@@ -608,8 +677,12 @@ void DTTPG::RemoveDuplicates( std::vector< DTHough< RefDTDigi_t > > *tempDTHough
 /// Same that also stores output for KFTF
 void DTTPG::RemoveDuplicates( std::vector< DTHough< RefDTDigi_t > > *tempDTHoughStorage,
                               std::vector< DTHough< RefDTDigi_t > > *outputHoughTrig,
-                              std::vector< L1MuDTChambPhDigi > *outputPhiTrigger ) const
+                              std::vector< L1MuDTChambPhDigi > *outputPhiTrigger,
+                              std::vector< L1Phase2MuDTPhDigi > *outputPhiTrigger2,
+                              std::vector< L1Phase2MuDTPhDigi > *outputPhiTrigger2slRF ) const
 {
+  std::sort( tempDTHoughStorage->begin(), tempDTHoughStorage->end(), DTTPG::PhiBQualSortDTHough );
+
   std::vector< bool > markForCleaning( tempDTHoughStorage->size(), false );
   for ( unsigned int iTrig = 0; iTrig < tempDTHoughStorage->size(); ++iTrig )
   {
@@ -803,6 +876,8 @@ void DTTPG::RemoveDuplicates( std::vector< DTHough< RefDTDigi_t > > *tempDTHough
         markForCleaning[ iTrig ] = true;
     }
   }
+
+  /// Phase 2 Data Format
   std::vector< DTHough< RefDTDigi_t > > *tmpOutput = new std::vector< DTHough< RefDTDigi_t > >();
   for ( unsigned int iTrig = 0; iTrig < tempDTHoughStorage->size(); ++iTrig )
   {
@@ -810,7 +885,42 @@ void DTTPG::RemoveDuplicates( std::vector< DTHough< RefDTDigi_t > > *tempDTHough
       continue;
     outputHoughTrig->push_back( tempDTHoughStorage->at( iTrig ) );
     tmpOutput->push_back( tempDTHoughStorage->at( iTrig ) );
+
+    DTChamberId tmpId = tempDTHoughStorage->at( iTrig ).GetDTChamberId();
+    int secCollSector = tmpId.sector();
+    if ( secCollSector == 13 ) secCollSector = 4;
+    else if ( secCollSector == 14 ) secCollSector = 10;
+    --secCollSector;
+
+    /// All projected to the chamber reference frame
+    outputPhiTrigger2->push_back( L1Phase2MuDTPhDigi( static_cast< int >( std::round( tempDTHoughStorage->at( iTrig ).GetBXTime()/32 ) ),
+                                                      tmpId.wheel(), secCollSector, tmpId.station(),
+                                                      tempDTHoughStorage->at( iTrig ).GetFiredSuperLayers(),
+                                                      static_cast< int >( std::round( tempDTHoughStorage->at( iTrig ).GetSectorPhi() * 65536 / 0.8 ) ),
+                                                      static_cast< int >( std::round( tempDTHoughStorage->at( iTrig ).GetBendingPhi() * 2048 / 1.4 ) ),
+                                                      tempDTHoughStorage->at( iTrig ).GetQuality(),
+                                                      iTrig+1,
+                                                      static_cast< int >( std::round( tempDTHoughStorage->at( iTrig ).GetBXTime() ) ),
+                                                      1, /// Default chi2
+                                                      -10 /// Default rpc
+                                                      ) );
+
+    /// TP aligned to super-layer reference frame when needed
+    outputPhiTrigger2slRF->push_back( L1Phase2MuDTPhDigi( static_cast< int >( std::round( tempDTHoughStorage->at( iTrig ).GetBXTime()/32 ) ),
+                                                          tmpId.wheel(), secCollSector, tmpId.station(),
+                                                          tempDTHoughStorage->at( iTrig ).GetFiredSuperLayers(),
+                                                          static_cast< int >( std::round( tempDTHoughStorage->at( iTrig ).GetSectorPhiSL() * 65536 / 0.8 ) ),
+                                                          static_cast< int >( std::round( tempDTHoughStorage->at( iTrig ).GetBendingPhiSL() * 2048 / 1.4 ) ),
+                                                          tempDTHoughStorage->at( iTrig ).GetQuality(),
+                                                          iTrig,
+                                                          static_cast< int >( std::round( tempDTHoughStorage->at( iTrig ).GetBXTime() ) ),
+                                                          1, /// Default chi2
+                                                          -10 /// Default rpc
+                                                          ) );
+    
   }
+
+  /// Phase 1 Data Format, only best 2 candidates
   unsigned int idxBest = 0;
   unsigned int idxSecond = 0;
   unsigned int qualBest = 0;
@@ -865,7 +975,9 @@ void DTTPG::RunAlgorithm( int32_t localZeroTime,
                           std::vector< DTHough< RefDTDigi_t > > *anOutputHoughTrigMMTOnly,
                           std::vector< DTHough< RefDTDigi_t > > *anOutputHoughTrigCHT1SL,
                           std::vector< DTHough< RefDTDigi_t > > *anOutputHoughTrigCHT2SL,
-                          std::vector< L1MuDTChambPhDigi > *anOutputPhiTrigger ) const
+                          std::vector< L1MuDTChambPhDigi > *anOutputPhiTrigger,
+                          std::vector< L1Phase2MuDTPhDigi > *anOutputPhiTrigger2,
+                          std::vector< L1Phase2MuDTPhDigi > *anOutputPhiTrigger2slRF ) const
 {
   std::map< DTChamberId, std::vector< std::pair< uint32_t, RefDTDigi_t > > >::const_iterator iterMapDigisByChamber;
   for ( iterMapDigisByChamber = aMapDigisByChamber.begin();
@@ -1020,6 +1132,6 @@ void DTTPG::RunAlgorithm( int32_t localZeroTime,
     this->RemoveDuplicates( tempDTHoughStorageMMTOnly, anOutputHoughTrigMMTOnly );
     this->RemoveDuplicates( tempDTHoughStorageCHT1SL, anOutputHoughTrigCHT1SL );
     //this->RemoveDuplicates( tempDTHoughStorageCHT2SL, anOutputHoughTrigCHT2SL );
-    this->RemoveDuplicates( tempDTHoughStorageCHT2SL, anOutputHoughTrigCHT2SL, anOutputPhiTrigger );
+    this->RemoveDuplicates( tempDTHoughStorageCHT2SL, anOutputHoughTrigCHT2SL, anOutputPhiTrigger, anOutputPhiTrigger2, anOutputPhiTrigger2slRF );
   }
 }

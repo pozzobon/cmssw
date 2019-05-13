@@ -1,4 +1,5 @@
 /*! \class DTTPG
+SORT OUTPUT
  *  \author Nicola Pozzobon
  *  \brief EDProducer of L1 DT based on the Hough Transform
  *  \date 2018, Sep 12
@@ -44,6 +45,9 @@ DTTPG::DTTPG( const edm::ParameterSet& aConfig )
   produces< std::vector< DTHough< RefDTDigi_t > > >( "FromDTDigisMMTOnly" );
   produces< L1MuDTChambPhContainer >( "MMTCHT" );
   //produces< L1MuDTChambThContainer >( "MMTCHT" );
+  produces< L1Phase2MuDTPhContainer >( "MMTCHT" );
+  produces< L1Phase2MuDTPhContainer >( "MMTCHTslRF" );
+
   std::fill( LUTfindWireZeroIdx, LUTfindWireZeroIdx + 43, 0xFF );
   LUTfindWireZeroIdx[0] = LUTfindWireZeroIdx[4] = 0;
   LUTfindWireZeroIdx[2] = LUTfindWireZeroIdx[6] = 1;
@@ -51,6 +55,7 @@ DTTPG::DTTPG( const edm::ParameterSet& aConfig )
   LUTfindWireZeroIdx[20] = LUTfindWireZeroIdx[24] = 3;
   LUTfindWireZeroIdx[36] = LUTfindWireZeroIdx[40] = 4;
   LUTfindWireZeroIdx[38] = LUTfindWireZeroIdx[42] = 5;
+
   edm::InputTag dtDigiTag( "simMuonDTDigis", "" );
   dtDigisToken = consumes< DTDigiCollection >( dtDigiTag );
 }
@@ -110,9 +115,13 @@ void DTTPG::produce( edm::Event& anEvent, const edm::EventSetup& anEventSetup )
   auto outputHoughTrigSingleSL = std::make_unique< std::vector< DTHough< RefDTDigi_t > > >();
   auto outputHoughTrigMMTOnly = std::make_unique< std::vector< DTHough< RefDTDigi_t > > >();
   std::vector< L1MuDTChambPhDigi > *outputPhiTrigger = new std::vector< L1MuDTChambPhDigi >();
+  std::vector< L1Phase2MuDTPhDigi > *outputPhiTrigger2 = new std::vector< L1Phase2MuDTPhDigi >();
+  std::vector< L1Phase2MuDTPhDigi > *outputPhiTrigger2slRF = new std::vector< L1Phase2MuDTPhDigi >();
+
   //std::vector< L1MuDTChambThDigi > outputThetaTrigger;
+
   std::map< DTChamberId, std::vector< std::pair< uint32_t, RefDTDigi_t > > > mapDigisByChamber = this->RetrieveDigis( anEvent );
-  this->RunAlgorithm( localZeroTime, mapDigisByChamber, &(*outputHoughTrigMMTOnly), &(*outputHoughTrigSingleSL), &(*outputHoughTrig), &(*outputPhiTrigger) );
+  this->RunAlgorithm( localZeroTime, mapDigisByChamber, &(*outputHoughTrigMMTOnly), &(*outputHoughTrigSingleSL), &(*outputHoughTrig), &(*outputPhiTrigger), &(*outputPhiTrigger2), &(*outputPhiTrigger2slRF) );
 
   anEvent.put( std::move( outputHoughTrig ), "FromDTDigis" );
   anEvent.put( std::move( outputHoughTrigSingleSL ), "FromDTDigisSingleSL" );

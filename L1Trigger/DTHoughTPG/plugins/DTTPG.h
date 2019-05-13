@@ -24,6 +24,7 @@
 #include "L1Trigger/DTHoughTPG/interface/DTHough.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambPhContainer.h"
 //#include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambThContainer.h"
+#include "DataFormats/L1DTTrackFinder/interface/L1Phase2MuDTPhContainer.h"
 
 class DTTPG : public edm::EDProducer
 {
@@ -41,6 +42,8 @@ class DTTPG : public edm::EDProducer
     static bool TimeSortDigis( const std::pair< uint32_t, RefDTDigi_t > firstDigiRef,
                                const std::pair< uint32_t, RefDTDigi_t > secondDigiRef );
     InputBMask_t ConvertHit( int32_t localZeroTime, const std::pair< uint32_t, RefDTDigi_t > aDigiRef ) const;
+    static bool PhiBQualSortDTHough( const DTHough< RefDTDigi_t > firstDTHough,
+                                     const DTHough< RefDTDigi_t > secondDTHough );
     void StoreTempOutput( DTChamberId aChambId,
                           uint32_t superLayer,
                           int32_t localZeroTime,
@@ -82,13 +85,17 @@ class DTTPG : public edm::EDProducer
                            std::vector< DTHough< RefDTDigi_t > > *outputHoughTrig ) const;
     void RemoveDuplicates( std::vector< DTHough< RefDTDigi_t > > *tempDTHoughStorage,
                            std::vector< DTHough< RefDTDigi_t > > *outputHoughTrig,
-                           std::vector< L1MuDTChambPhDigi > *outputPhiTrigger ) const;
+                           std::vector< L1MuDTChambPhDigi > *outputPhiTrigger,
+                           std::vector< L1Phase2MuDTPhDigi > *outputPhiTrigger2,
+                           std::vector< L1Phase2MuDTPhDigi > *outputPhiTrigger2slRF ) const;
     void RunAlgorithm( int32_t localZeroTime,
                        std::map< DTChamberId, std::vector< std::pair< uint32_t, RefDTDigi_t > > > aMapDigisByChamber,
                        std::vector< DTHough< RefDTDigi_t > > *anOutputHoughTrigMMTOnly,
                        std::vector< DTHough< RefDTDigi_t > > *anOutputHoughTrigCHT1SL,
                        std::vector< DTHough< RefDTDigi_t > > *anOutputHoughTrigCHT2SL,
-                       std::vector< L1MuDTChambPhDigi > *anOutputPhiTrigger ) const;
+                       std::vector< L1MuDTChambPhDigi > *anOutputPhiTrigger,
+                       std::vector< L1Phase2MuDTPhDigi > *outputPhiTrigger2,
+                       std::vector< L1Phase2MuDTPhDigi > *outputPhiTrigger2slRF ) const;
     void DriveHits( b2_Idx_t aSuperLayer,
                     NHitPerChmb_t aHitCounter,
                     WireShift_t numWireShift,

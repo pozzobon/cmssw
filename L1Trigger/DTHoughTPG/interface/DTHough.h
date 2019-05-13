@@ -48,6 +48,7 @@ class DTHough
     /// End-user information
     double GetTrigTanPhi() const;
     double GetTrigX0() const;
+    double GetUnprojectedTrigX0() const;
     double GetGlobalPhi() const;// { return theGlobalPhi; }
     void   SetGlobalPhi( double aGlobalPhi ) { theGlobalPhi = aGlobalPhi; }
     double GetSectorPhi() const;// { return theSectorPhi; }
@@ -55,6 +56,12 @@ class DTHough
     double GetGlobalTheta() const { return theGlobalTheta; }
     void   SetGlobalTheta( double aGlobalTheta ) { theGlobalTheta = aGlobalTheta; }
     double GetBendingPhi() const;
+
+    double GetGlobalPhiSL() const;// { return theGlobalPhi; }
+    void   SetGlobalPhiSL( double aGlobalPhi ) { theGlobalPhiSL = aGlobalPhi; }
+    double GetSectorPhiSL() const;// { return theSectorPhi; }
+    void   SetSectorPhiSL( double aSectorPhi ) { theSectorPhiSL = aSectorPhi; }
+    double GetBendingPhiSL() const;
 
     unsigned int GetQuality() const { return theQuality; }
     void         SetQuality( unsigned int aQuality ) { theQuality = aQuality; }
@@ -85,6 +92,9 @@ class DTHough
     double theSectorPhi; /// +4*M_PI for positive wheels
     double theGlobalTheta;
 
+    double theGlobalPhiSL;
+    double theSectorPhiSL;
+
 }; /// Close class
 
 template< typename T >
@@ -107,6 +117,8 @@ DTHough< T >::DTHough()
   theQuality = qDummy;
   theGlobalPhi = -999.9;
   theSectorPhi = -999.9;
+  theGlobalPhiSL = -999.9;
+  theSectorPhiSL = -999.9;
   theGlobalTheta = -999.9;
 }
 
@@ -160,6 +172,28 @@ double DTHough< T >::GetTrigX0() const
 }
 
 template< typename T >
+double DTHough< T >::GetUnprojectedTrigX0() const
+{
+  if ( theXMCellList[0] != 0x7FFFFFFF &&
+       theXMCellList[2] != 0x7FFFFFFF )
+    return 0.5 * static_cast< double >( theXMCellList[0] + theXMCellList[2] ) * defUnitX + theMCellCentralCoord;
+  else
+  {
+    if ( theXMCellList[0] != 0x7FFFFFFF && the2TanPhi128 != 0x7FFFFFFF )
+      return static_cast< double >( theXMCellList[0] ) * defUnitX + theMCellCentralCoord;
+
+    else if ( theXMCellList[2] != 0x7FFFFFFF && the2TanPhi128 != 0x7FFFFFFF )
+      return static_cast< double >( theXMCellList[2] ) * defUnitX + theMCellCentralCoord;
+
+    else if ( theXMCellList[1] != 0x7FFFFFFF && the2TanPhi128 != 0x7FFFFFFF )
+      return static_cast< double >( theXMCellList[1] ) * defUnitX + theMCellCentralCoord;
+
+    else
+      return 999.9;
+  }
+}
+
+template< typename T >
 std::ostream& operator << ( std::ostream& os, const DTHough< T >& aDTHough ) { return ( os << aDTHough.print() ); }
 
 template< typename T >
@@ -189,6 +223,37 @@ double DTHough< T >::GetBendingPhi() const
     }
     else
       return - atan( this->GetTrigTanPhi() ) - this->GetSectorPhi();
+  }
+  return 999.9;
+}
+
+template< typename T >
+double DTHough< T >::GetGlobalPhiSL() const
+{
+  if ( theGlobalPhiSL < 0 )
+    return theGlobalPhiSL + 2 * M_PI;
+  return theGlobalPhiSL;
+}
+
+template< typename T >
+double DTHough< T >::GetSectorPhiSL() const
+{
+  if ( theSectorPhiSL > 2.*M_PI )
+    return theSectorPhiSL - 4.*M_PI; /// To switch between positive and negative wheels
+  return theSectorPhiSL;
+}
+
+template< typename T >
+double DTHough< T >::GetBendingPhiSL() const
+{
+  if ( this->GetTrigTanPhi() != 999.9 )
+  {
+    if ( theSectorPhiSL > 2.*M_PI )
+    {
+      return atan( this->GetTrigTanPhi() ) - this->GetSectorPhiSL();
+    }
+    else
+      return - atan( this->GetTrigTanPhi() ) - this->GetSectorPhiSL();
   }
   return 999.9;
 }
