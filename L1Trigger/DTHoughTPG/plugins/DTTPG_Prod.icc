@@ -103,7 +103,7 @@ bool DTTPG::PhiBQualSortDTHough( const DTHough< RefDTDigi_t > firstDTHough,
   double secondBend = secondDTHough.GetBendingPhi();
 
   if ( firstQual == secondQual )
-    return ( fabs( firstBend ) > fabs( secondBend ) );
+    return ( fabs( firstBend ) < fabs( secondBend ) );
 
   return ( firstQual > secondQual );
 }

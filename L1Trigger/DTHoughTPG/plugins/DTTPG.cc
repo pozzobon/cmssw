@@ -132,6 +132,14 @@ void DTTPG::produce( edm::Event& anEvent, const edm::EventSetup& anEventSetup )
   //std::unique_ptr< L1MuDTChambThContainer > resultThetaTrig ( new L1MuDTChambThContainer );
   //resultThetaTrig->setContainer( outputThetaTrigger );
   //anEvent.put( std::move( resultThetaTrig ), "MMTCHT" );
+
+  std::unique_ptr< L1Phase2MuDTPhContainer > resultPhiTrigPh2 ( new L1Phase2MuDTPhContainer );
+  resultPhiTrigPh2->setContainer( *outputPhiTrigger2 );
+  anEvent.put( std::move( resultPhiTrigPh2 ), "MMTCHT" );
+  std::unique_ptr< L1Phase2MuDTPhContainer > resultPhiTrigPh2slRF ( new L1Phase2MuDTPhContainer );
+  resultPhiTrigPh2slRF->setContainer( *outputPhiTrigger2slRF );
+  anEvent.put( std::move( resultPhiTrigPh2slRF ), "MMTCHTslRF" );
+
   return;
 }
 
