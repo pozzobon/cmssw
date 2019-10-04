@@ -135,8 +135,8 @@ void DTTPG::RunCHTTwoSL( WireShift_t corrFirstWire1,
               exit( EXIT_FAILURE );
             }
             twoTanPhiMCell[ iMacroCell ][ iCombin + 10 * iCluster ] = twoTanPhi;
-            x0MCell1[ iMacroCell ][ iCombin + 10 * iCluster ] = resX01[ iCluster ];
-            x0MCell3[ iMacroCell ][ iCombin + 10 * iCluster ] = resX03[ iCluster ] + thisMCellXDiff;
+            if ( resX01[ iCluster ] != DEF_MCellPos ) x0MCell1[ iMacroCell ][ iCombin + 10 * iCluster ] = resX01[ iCluster ];
+            if ( resX03[ iCluster ] != DEF_MCellPos ) x0MCell3[ iMacroCell ][ iCombin + 10 * iCluster ] = resX03[ iCluster ] + thisMCellXDiff;
 
           }
         }
@@ -239,8 +239,8 @@ void DTTPG::RunCHTTwoSL( WireShift_t corrFirstWire1,
               exit( EXIT_FAILURE );
             }
             twoTanPhiMCell[ iMacroCell ][ iCombin + 10 * iCluster ] = twoTanPhi;
-            x0MCell1[ iMacroCell ][ iCombin + 10 * iCluster ] = resX01[ iCluster ];
-            x0MCell3[ iMacroCell ][ iCombin + 10 * iCluster ] = resX03[ iCluster ] + thisMCellXDiff;
+            if ( resX01[ iCluster ] != DEF_MCellPos ) x0MCell1[ iMacroCell ][ iCombin + 10 * iCluster ] = resX01[ iCluster ];
+            if ( resX03[ iCluster ] != DEF_MCellPos ) x0MCell3[ iMacroCell ][ iCombin + 10 * iCluster ] = resX03[ iCluster ] + thisMCellXDiff;
           }
         }
       }
